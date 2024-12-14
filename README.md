@@ -1,3 +1,14 @@
+## Scheme解释器 代码记录
+
+### First version
+实现了Task 1和一些基本的parser和evalution的功能
+
+### Second version
+修改了quote的语法 实现了样例 (cdr (quote ((ll . lr) . (rl . rr)))) 中 . 号的判断和处理
+基本完成了对最基础REPL循环的实现
+
+# 下面是本次作业内容
+
 ## Project 4: Scheme Interpreter
 
 > SJTU CS1958-01 2024Fall 第四次大作业

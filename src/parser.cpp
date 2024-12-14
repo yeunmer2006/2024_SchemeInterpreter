@@ -70,49 +70,49 @@ Expr List ::parse(Assoc& env) {
                 case E_MUL: {
                     // *
                     checkArgCount(3, stxs.size());
-                    return new Apply(new Mult(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new Mult(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_MINUS: {
                     // -
                     checkArgCount(3, stxs.size());
-                    return new Apply(new Minus(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new Minus(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_PLUS: {
                     // +
                     checkArgCount(3, stxs.size());
-                    return new Apply(new Plus(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new Plus(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_LT: {
                     // <
                     checkArgCount(3, stxs.size());
-                    return new Apply(new Less(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new Less(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_LE: {
                     // <=
                     checkArgCount(3, stxs.size());
-                    return new Apply(new LessEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new LessEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_EQ: {
                     // ==
                     checkArgCount(3, stxs.size());
-                    return new Apply(new Equal(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new Equal(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_GE: {
                     // >=
                     checkArgCount(3, stxs.size());
-                    return new Apply(new GreaterEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new GreaterEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_GT: {
                     // >
                     checkArgCount(3, stxs.size());
-                    return new Apply(new Greater(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new Greater(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_VOID: {
@@ -123,66 +123,66 @@ Expr List ::parse(Assoc& env) {
                 case E_EQQ: {
                     // "eq?"
                     checkArgCount(3, stxs.size());
-                    return new Apply(new IsEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new IsEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_BOOLQ: {
                     // "boolen?"
                     checkArgCount(2, stxs.size());
-                    return new Apply(new IsBoolean(stxs[1].get()->parse(env)), rand_);
+                    return new IsBoolean(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_INTQ: {
                     // "fixnum?"
                     checkArgCount(2, stxs.size());
-                    return new Apply(new IsFixnum(stxs[1].get()->parse(env)), rand_);
+                    return new IsFixnum(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_NULLQ: {
                     // "null?"
                     checkArgCount(2, stxs.size());
-                    return new Apply(new IsNull(stxs[1].get()->parse(env)), rand_);
+                    return new IsNull(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_PAIRQ: {
                     // "pair?"
                     checkArgCount(2, stxs.size());
-                    return new Apply(new IsPair(stxs[1].get()->parse(env)), rand_);
+                    return new IsPair(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_PROCQ: {
                     // "procedure?"
                     checkArgCount(2, stxs.size());
-                    return new Apply(new IsProcedure(stxs[1].get()->parse(env)), rand_);
+                    return new IsProcedure(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_SYMBOLQ: {
                     // "symbol?"
                     checkArgCount(2, stxs.size());
-                    return new Apply(new IsSymbol(stxs[1].get()->parse(env)), rand_);
+                    return new IsSymbol(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_CONS: {
                     // cons
                     checkArgCount(3, stxs.size());
-                    return new Apply(new Cons(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
+                    return new Cons(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
                     break;
                 }
                 case E_NOT: {
                     // not
                     checkArgCount(2, stxs.size());
-                    return new Apply(new Not(stxs[1].get()->parse(env)), rand_);
+                    return new Not(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_CAR: {
                     // cdr
                     checkArgCount(2, stxs.size());
-                    return new Apply(new Car(stxs[1].get()->parse(env)), rand_);
+                    return new Car(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_CDR: {
                     checkArgCount(2, stxs.size());
-                    return new Apply(new Cdr(stxs[1].get()->parse(env)), rand_);
+                    return new Cdr(stxs[1].get()->parse(env));
                     break;
                 }
                 case E_EXIT: {
@@ -199,8 +199,15 @@ Expr List ::parse(Assoc& env) {
                 case E_LETREC: {
                 }
                 case E_IF: {
+                    checkArgCount(4, stxs.size());
+                    return new If(stxs[1].get()->parse(env), stxs[2].get()->parse(env), stxs[3].get()->parse(env));
                 }
                 case E_BEGIN: {
+                    vector<Expr> rand_;  // 参数列表
+                    for (int i = 1; i < stxs.size(); i++) {
+                        rand_.push_back(stxs[i].get()->parse(env));
+                    }
+                    return new Begin(rand_);
                 }
                 case E_QUOTE: {
                     checkArgCount(2, stxs.size());
