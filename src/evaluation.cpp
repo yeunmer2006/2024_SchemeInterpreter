@@ -25,12 +25,23 @@ Value Apply::eval(Assoc& e) {
         case E_MINUS: {
             return dynamic_cast<Minus*>(rator.get())->evalRator(rand[0].get()->eval(e), rand[1].get()->eval(e));
         }
+        case E_CONS: {
+            return dynamic_cast<Cons*>(rator.get())->evalRator(rand[0].get()->eval(e), rand[1].get()->eval(e));
+        }
+        case E_CAR: {
+            return dynamic_cast<Car*>(rator.get())->evalRator(rand[0].get()->eval(e));
+        }
+        case E_CDR: {
+            return dynamic_cast<Cdr*>(rator.get())->evalRator(rand[0].get()->eval(e));
+        }
     }
 }  // for function calling
 
 Value Letrec::eval(Assoc& env) {}  // letrec expression
 
-Value Var::eval(Assoc& e) {}  // evaluation of variable
+Value Var::eval(Assoc& e) {
+    return SymbolV(x);
+}  // evaluation of variable
 
 Value Fixnum::eval(Assoc& e) {
     return IntegerV(n);
@@ -58,12 +69,33 @@ Value Quote::eval(Assoc& e) {
     } else if (auto it = dynamic_cast<Identifier*>(s.get())) {
         // symbol 为单个独立的变量
         return SymbolV(it->s);
-    } else if (auto pairExpr = dynamic_cast<List*>(s.get())) {
-        if (pairExpr->stxs.empty()) {
+    } else if (auto it = dynamic_cast<List*>(s.get())) {
+        if (it->stxs.empty()) {
             // 空列表判断为NUll
             return NullV();
+        } else if (it->stxs.size() == 1) {
+            if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
+                // 是表示符 则为了防止是保留字强制转化为 symbol
+                return PairV(SymbolV(tmp_it->s), NullV());
+            } else
+                return PairV(it->stxs.front().parse(e).get()->eval(e), NullV());
         } else {
-            // return PairV();
+            // 先检查是不是 (a . b) 格式
+            if (it->stxs.size() == 3) {
+                if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs[1].get())) {
+                    if (tmp_it->s == ".") {
+                        Quote car_(it->stxs[0]);
+                        Quote cdr_(it->stxs[2]);
+                        return PairV(car_.eval(e), cdr_.eval(e));
+                    }
+                }
+            }
+            // 非空 则生成 第一个value 和后面的
+            Value firstValue = it->stxs.front().parse(e).get()->eval(e);  // List 中 存储第一个syntax进行parser之后再进行eval
+            List* remain_list = new List;
+            (*remain_list).stxs = std::vector<Syntax>(it->stxs.begin() + 1, it->stxs.end());
+            Value restValue = Quote(Syntax(remain_list)).eval(e);
+            return PairV(firstValue, restValue);
         }
     } else {
         throw RuntimeError("Unsupported Expr type for quote.");
@@ -110,7 +142,8 @@ Value Minus::evalRator(const Value& rand1, const Value& rand2) {
     throw RuntimeError("Wrong with your parametric");
 }  // -
 
-Value Less::evalRator(const Value& rand1, const Value& rand2) {}  // <
+Value Less::evalRator(const Value& rand1, const Value& rand2) {
+}  // <
 
 Value LessEq::evalRator(const Value& rand1, const Value& rand2) {}  // <=
 
@@ -122,7 +155,9 @@ Value Greater::evalRator(const Value& rand1, const Value& rand2) {}  // >
 
 Value IsEq::evalRator(const Value& rand1, const Value& rand2) {}  // eq?
 
-Value Cons::evalRator(const Value& rand1, const Value& rand2) {}  // cons
+Value Cons::evalRator(const Value& rand1, const Value& rand2) {
+    return PairV(rand1, rand2);
+}  // cons
 
 Value IsBoolean::evalRator(const Value& rand) {}  // boolean?
 
@@ -136,8 +171,28 @@ Value IsPair::evalRator(const Value& rand) {}  // pair?
 
 Value IsProcedure::evalRator(const Value& rand) {}  // procedure?
 
-Value Not::evalRator(const Value& rand) {}  // not
+Value Not::evalRator(const Value& rand) {
+    if (auto it = dynamic_cast<Boolean*>(rand.get())) {
+        if (it->b == 0) {
+            return BooleanV(1);
+        }
+    }
+    return BooleanV(0);
+}  // not
 
-Value Car::evalRator(const Value& rand) {}  // car
+Value Car::evalRator(const Value& rand) {
+    if (auto it = dynamic_cast<Pair*>(rand.get())) {
+        return it->car;
+    } else {
+        throw RuntimeError("RE");
+    }
 
-Value Cdr::evalRator(const Value& rand) {}  // cdr
+}  // car
+
+Value Cdr::evalRator(const Value& rand) {
+    if (auto it = dynamic_cast<Pair*>(rand.get())) {
+        return it->cdr;
+    } else {
+        throw RuntimeError("RE");
+    }
+}  // cdr

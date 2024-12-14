@@ -16,7 +16,6 @@ struct SyntaxBase {
 
 struct Syntax {
     SharedPtr<SyntaxBase> ptr;
-    // 此处SharedPtr是模仿share_ptr写的智能指针
     Syntax(SyntaxBase*);
     SyntaxBase* operator->() const;
     SyntaxBase& operator*();

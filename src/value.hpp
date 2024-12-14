@@ -92,12 +92,13 @@ struct Pair : ValueBase {
 Value PairV(const Value&, const Value&);
 
 struct Closure : ValueBase {
+    // Closure 类将一个函数的参数、函数体以及它的环境封装在一起。
     std::vector<std::string> parameters;
     Expr e;
     Assoc env;
     Closure(const std::vector<std::string>&, const Expr&, const Assoc&);
     virtual void show(std::ostream&) override;
-};
+};  // 它是一个表示闭包（closure）的数据结构。闭包是函数式编程中的一个重要概念，表示一个函数以及该函数的环境（即变量的绑定）。
 Value ClosureV(const std::vector<std::string>&, const Expr&, const Assoc&);
 
 struct String : ValueBase {

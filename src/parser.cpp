@@ -26,7 +26,7 @@ void checkArgCount(int expected, int actual) {
 }  // 一个定义的 检查参数数量是否达标
 
 Expr Syntax ::parse(Assoc& env) {
-    return ptr.get()->parse(env);
+    return ptr.get()->parse(env);  // Syntax 作为封装类的parse是直接取其实际包裹指针的函数
 }
 
 Expr Number ::parse(Assoc& env) {
@@ -36,7 +36,8 @@ Expr Number ::parse(Assoc& env) {
 Expr Identifier ::parse(Assoc& env) {
     // 检查标识符是否为原始操作符
     if (primitives.count(this->s)) {
-        throw RuntimeError("Unknown operation: " + this->s);
+        // throw RuntimeError("Unknown operation: " + this->s);
+        return new Var(s);
     }
     return new Var(s);
 }
@@ -51,7 +52,8 @@ Expr FalseSyntax ::parse(Assoc& env) {
 
 Expr List ::parse(Assoc& env) {
     if (stxs.empty()) {
-        throw RuntimeError("Empty list in syntax");
+        List* it = new List;
+        return new Quote(it);
     }
     SyntaxBase* first_ = stxs[0].get();  // 先处理第一个
 
@@ -66,132 +68,125 @@ Expr List ::parse(Assoc& env) {
             }
             switch (primitives[id_name]) {
                 case E_MUL: {
+                    // *
                     checkArgCount(3, stxs.size());
                     return new Apply(new Mult(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_MINUS: {
+                    // -
                     checkArgCount(3, stxs.size());
                     return new Apply(new Minus(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_PLUS: {
+                    // +
                     checkArgCount(3, stxs.size());
                     return new Apply(new Plus(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_LT: {
+                    // <
                     checkArgCount(3, stxs.size());
                     return new Apply(new Less(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_LE: {
+                    // <=
                     checkArgCount(3, stxs.size());
                     return new Apply(new LessEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_EQ: {
+                    // ==
                     checkArgCount(3, stxs.size());
                     return new Apply(new Equal(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_GE: {
+                    // >=
                     checkArgCount(3, stxs.size());
                     return new Apply(new GreaterEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_GT: {
+                    // >
                     checkArgCount(3, stxs.size());
                     return new Apply(new Greater(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_VOID: {
-                    if (stxs.size() != 1) {
-                        throw RuntimeError("RuntimeError");
-                    }
+                    // void
+                    checkArgCount(1, stxs.size());
                     return new MakeVoid();
                 }
                 case E_EQQ: {
-                    if (stxs.size() != 3) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new IsEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                    // "eq?"
+                    checkArgCount(3, stxs.size());
+                    return new Apply(new IsEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_BOOLQ: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new IsBoolean(stxs[1].get()->parse(env));
+                    // "boolen?"
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new IsBoolean(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_INTQ: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new IsFixnum(stxs[1].get()->parse(env));
+                    // "fixnum?"
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new IsFixnum(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_NULLQ: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new IsNull(stxs[1].get()->parse(env));
+                    // "null?"
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new IsNull(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_PAIRQ: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new IsPair(stxs[1].get()->parse(env));
+                    // "pair?"
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new IsPair(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_PROCQ: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new IsProcedure(stxs[1].get()->parse(env));
+                    // "procedure?"
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new IsProcedure(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_SYMBOLQ: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new IsSymbol(stxs[1].get()->parse(env));
+                    // "symbol?"
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new IsSymbol(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_CONS: {
-                    if (stxs.size() != 3) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new Cons(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                    // cons
+                    checkArgCount(3, stxs.size());
+                    return new Apply(new Cons(stxs[1].get()->parse(env), stxs[2].get()->parse(env)), rand_);
                     break;
                 }
                 case E_NOT: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new Not(stxs[1].get()->parse(env));
+                    // not
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new Not(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_CAR: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new Car(stxs[1].get()->parse(env));
+                    // cdr
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new Car(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_CDR: {
-                    if (stxs.size() != 2) {
-                        throw RuntimeError("RuntimeError");
-                    }
-                    return new Cdr(stxs[1].get()->parse(env));
+                    checkArgCount(2, stxs.size());
+                    return new Apply(new Cdr(stxs[1].get()->parse(env)), rand_);
                     break;
                 }
                 case E_EXIT: {
-                    if (stxs.size() != 1) {
-                        throw RuntimeError("RuntimeError");
-                    }
+                    checkArgCount(1, stxs.size());
                     return new Exit();
                 }
             }

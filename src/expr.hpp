@@ -197,7 +197,7 @@ struct IsPair : Unary {
 struct IsProcedure : Unary {
     IsProcedure(const Expr&);
     virtual Value evalRator(const Value&) override;
-};
+};  // 这个 Procedure 是一个函数对象，它有自己的 eval 方法，并且通常由解释器或者运行时系统动态处理
 
 struct Not : Unary {
     Not(const Expr&);
