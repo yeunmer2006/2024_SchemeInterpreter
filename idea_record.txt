@@ -1,0 +1,17 @@
+1 . 对于保留字 首先将其视为普通的标识符 再将其视为普通的变量Var 
+
+2 . 问题 ：
+
+``` if (auto first_it = dynamic_cast<List*>(first_)) {
+        auto tmp_it = first_it->parse(env).get()->eval(env);
+        if (auto func_it = dynamic_cast<Closure*>(tmp_it.get())) {
+            if (func_it->e.get() != nullptr) {
+    
+    与
+
+``` if (auto first_it = dynamic_cast<List*>(first_)) {
+        auto tmp_it = first_it->parse(env).get()->eval(env).get();
+        if (auto func_it = dynamic_cast<Closure*>(tmp_it)) {
+            if (func_it->e.get() != nullptr) {
+
+    的区别是什么 为什么第一个是真确的 但是第二个会导致原先传进来的参数变成乱码

@@ -13,4 +13,5 @@ class RuntimeError : std::exception {
     std ::string message() const;
 };
 
+void checkArgCount(int expected, int actual);
 #endif

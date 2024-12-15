@@ -12,15 +12,208 @@ extern std ::map<std ::string, ExprType> reserved_words;
 
 Value Let::eval(Assoc& env) {}  // let expression
 
-Value Lambda::eval(Assoc& env) {}  // lambda expression
+Value Lambda::eval(Assoc& env) {
+    return ClosureV(x, e, env);
+}  // lambda expression
 
 Value Apply::eval(Assoc& e) {
+    // if (auto it = dynamic_cast<Var*>(rator.get())) {
+    //     std::string id_name = it->x;
+    //     // 检查是否是保留字
+    //     if (primitives.count(id_name)) {
+    //         switch (primitives[id_name]) {
+    //             case E_MUL: {
+    //                 // *
+    //                 checkArgCount(2, rand.size());
+    //                 return new Mult(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_MINUS: {
+    //                 // -
+    //                 checkArgCount(2, rand.size());
+    //                 return new Minus(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_PLUS: {
+    //                 // +
+    //                 checkArgCount(2, rand.size());
+    //                 return new Plus(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_LT: {
+    //                 // <
+    //                 checkArgCount(2, rand.size());
+    //                 return new Less(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_LE: {
+    //                 // <=
+    //                 checkArgCount(2, rand.size());
+    //                 return new LessEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_EQ: {
+    //                 // ==
+    //                 checkArgCount(2, rand.size());
+    //                 return new Equal(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_GE: {
+    //                 // >=
+    //                 checkArgCount(2, rand.size());
+    //                 return new GreaterEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_GT: {
+    //                 // >
+    //                 checkArgCount(2, rand.size());
+    //                 return new Greater(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_EQQ: {
+    //                 // "eq?"
+    //                 checkArgCount(2, rand.size());
+    //                 return new IsEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_BOOLQ: {
+    //                 // "boolen?"
+    //                 checkArgCount(2, rand.size());
+    //                 return new IsBoolean(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_INTQ: {
+    //                 // "fixnum?"
+    //                 checkArgCount(1, rand.size());
+    //                 return new IsFixnum(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_NULLQ: {
+    //                 // "null?"
+    //                 checkArgCount(1, rand.size());
+    //                 return new IsNull(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_PAIRQ: {
+    //                 // "pair?"
+    //                 checkArgCount(1, rand.size());
+    //                 return new IsPair(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_PROCQ: {
+    //                 // "procedure?"
+    //                 checkArgCount(1, rand.size());
+    //                 return new IsProcedure(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_SYMBOLQ: {
+    //                 // "symbol?"
+    //                 checkArgCount(1, rand.size());
+    //                 return new IsSymbol(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_CONS: {
+    //                 // cons
+    //                 checkArgCount(2, rand.size());
+    //                 return new Cons(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_NOT: {
+    //                 // not
+    //                 checkArgCount(1, rand.size());
+    //                 return new Not(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_CAR: {
+    //                 // cdr
+    //                 checkArgCount(1, rand.size());
+    //                 return new Car(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //             case E_CDR: {
+    //                 checkArgCount(1, rand.size());
+    //                 return new Cdr(stxs[1].get()->parse(env));
+    //                 break;
+    //             }
+    //         }
+    //     } else if (reserved_words.count(id_name)) {
+    //         switch (reserved_words[id_name]) {
+    //             case E_LET: {
+    //             }
+    //             case E_LAMBDA: {
+    //                 checkArgCount(3, stxs.size());
+    //                 std::vector<std::string> vars;
+    //                 if (auto it = dynamic_cast<List*>(stxs[2].get())) {
+    //                     // 读取列表中变量
+    //                     for (int i = 0; i < it->stxs.size(); i++) {
+    //                         if (auto tmp_var = dynamic_cast<Identifier*>(it->stxs[i].get())) {
+    //                             vars.push_back(tmp_var->s);
+    //                         } else {
+    //                             throw RuntimeError("Wrong with your var");
+    //                         }
+    //                     }
+    //                     return new Lambda(vars, stxs[2].get()->parse(env));
+    //                 } else {
+    //                     throw RuntimeError("Wrong with your var");
+    //                 }
+    //             }
+    //             case E_LETREC: {
+    //             }
+    //             case E_IF: {
+    //                 checkArgCount(4, stxs.size());
+    //                 return new If(stxs[1].get()->parse(env), stxs[2].get()->parse(env), stxs[3].get()->parse(env));
+    //             }
+    //             case E_BEGIN: {
+    //                 vector<Expr> rand_;  // 参数列表
+    //                 for (int i = 1; i < stxs.size(); i++) {
+    //                     rand_.push_back(stxs[i].get()->parse(env));
+    //                 }
+    //                 return new Begin(rand_);
+    //             }
+    //             case E_QUOTE: {
+    //                 checkArgCount(2, stxs.size());
+    //                 return new Quote(stxs[1]);
+    //             }
+    //         }
+    //     }
+    // }
+    if (auto it = dynamic_cast<Unary*>(rator.get())) {
+        checkArgCount(1, rand.size());
+        return it->evalRator(rand[0].get()->eval(e));
+    }
+    if (auto it = dynamic_cast<Binary*>(rator.get())) {
+        checkArgCount(2, rand.size());
+        return it->evalRator(rand[0].get()->eval(e), rand[1].get()->eval(e));
+    }
 }  // for function calling
 
 Value Letrec::eval(Assoc& env) {}  // letrec expression
 
 Value Var::eval(Assoc& e) {
-    return SymbolV(x);
+    // 先检查是否合法
+    if ((x.front() >= '0' && x.front() <= '9') || (x.front() == '.') || (x.front() == '@')) {
+        throw RuntimeError("Wrong with your var");
+    }
+    // if (x.find('#') != x.size()) {
+    //     throw RuntimeError("Wrong with your var");
+    // }
+    auto it = find(x, e);
+    if (it.get() == nullptr) {
+        if (primitives.count(x) || reserved_words.count(x)) {
+            std::vector<std::string> parameters_;
+            Expr exp(new Var(x));
+            if (primitives.count(x)) {
+                exp.get()->e_type = primitives[x];
+            } else {
+                exp.get()->e_type = reserved_words[x];
+            }
+            return ClosureV(parameters_, exp, e);
+        } else {
+            throw RuntimeError("RE");
+        }
+    } else {
+        return it;
+    }
 }  // evaluation of variable
 
 Value Fixnum::eval(Assoc& e) {
@@ -29,9 +222,11 @@ Value Fixnum::eval(Assoc& e) {
 
 Value If::eval(Assoc& e) {
     if (auto it = dynamic_cast<False*>(cond.get())) {
-        return alter.get()->eval(e);
+        auto it_value = alter.get()->eval(e);
+        return it_value;
     } else {
-        return conseq.get()->eval(e);
+        auto it_value = conseq.get()->eval(e);
+        return it_value;
     }
 }  // if expression
 

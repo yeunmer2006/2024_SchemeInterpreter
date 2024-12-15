@@ -19,7 +19,8 @@ struct ValueBase {
 
 // 封装了所有值
 struct Value {
-    SharedPtr<ValueBase> ptr;  // 储存派生类 这个才是真正的valuebase 而外部嵌套的Value是一个封装
+    // SharedPtr<ValueBase> ptr;  // 储存派生类 这个才是真正的valuebase 而外部嵌套的Value是一个封装
+    std::shared_ptr<ValueBase> ptr;
     Value(ValueBase*);
     void show(std::ostream&);
     ValueBase* operator->() const;
@@ -29,7 +30,8 @@ struct Value {
 
 // 一个封装类，管理指向 AssocList 的智能指针，提供类似 Value 的操作接口。
 struct Assoc {
-    SharedPtr<AssocList> ptr;
+    // SharedPtr<AssocList> ptr;
+    std::shared_ptr<AssocList> ptr;
     Assoc(AssocList*);
     AssocList* operator->() const;
     AssocList& operator*();
@@ -39,6 +41,7 @@ struct Assoc {
 // 一个链表节点，用来实现变量绑定和环境
 struct AssocList {
     // 变量名为 x 的绑定,其值为 v
+    // 如果链表中存在多个同名变量，第一个匹配到的（即离当前作用域最近的）变量就是当前有效的变量，而后续的同名变量相当于被遮蔽了。
     std::string x;
     Value v;
     Assoc next;

@@ -1,10 +1,9 @@
 #include "Def.hpp"
 
-std :: map<std :: string, ExprType> primitives;
-std :: map<std :: string, ExprType> reserved_words;
+std ::map<std ::string, ExprType> primitives;
+std ::map<std ::string, ExprType> reserved_words;
 
-void initPrimitives()
-{
+void initPrimitives() {
     // primitives stores all procedures in library, mapping them to ExprTypes
     primitives["*"] = E_MUL;
     primitives["-"] = E_MINUS;
@@ -29,8 +28,7 @@ void initPrimitives()
     primitives["exit"] = E_EXIT;
 }
 
-void initReservedWords()
-{
+void initReservedWords() {
     // reserved_words stores all reserved words, mapping them to bools
     reserved_words["let"] = E_LET;
     reserved_words["lambda"] = E_LAMBDA;

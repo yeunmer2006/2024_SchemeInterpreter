@@ -19,12 +19,6 @@ using std ::vector;
 extern std ::map<std ::string, ExprType> primitives;
 extern std ::map<std ::string, ExprType> reserved_words;
 
-void checkArgCount(int expected, int actual) {
-    if (expected != actual) {
-        throw RuntimeError("Expected " + std::to_string(expected - 1) + " arguments, but got " + std::to_string(actual - 1));
-    }
-}  // 一个定义的 检查参数数量是否达标
-
 Expr Syntax ::parse(Assoc& env) {
     return ptr.get()->parse(env);  // Syntax 作为封装类的parse是直接取其实际包裹指针的函数
 }
@@ -34,11 +28,6 @@ Expr Number ::parse(Assoc& env) {
 }
 
 Expr Identifier ::parse(Assoc& env) {
-    // 检查标识符是否为原始操作符
-    if (primitives.count(this->s)) {
-        // throw RuntimeError("Unknown operation: " + this->s);
-        return new Var(s);
-    }
     return new Var(s);
 }
 
@@ -57,7 +46,7 @@ Expr List ::parse(Assoc& env) {
     }
     SyntaxBase* first_ = stxs[0].get();  // 先处理第一个
 
-    // first_ 是指向 Identifier类型的对象
+    // first_ 是指向 Identifier类型的对象 比如保留字
     if (auto id = dynamic_cast<Identifier*>(first_)) {
         string id_name = id->s;
         // 检查是否是保留字
@@ -195,6 +184,21 @@ Expr List ::parse(Assoc& env) {
                 case E_LET: {
                 }
                 case E_LAMBDA: {
+                    checkArgCount(3, stxs.size());
+                    std::vector<std::string> vars;
+                    if (auto it = dynamic_cast<List*>(stxs[2].get())) {
+                        // 读取列表中变量
+                        for (int i = 0; i < it->stxs.size(); i++) {
+                            if (auto tmp_var = dynamic_cast<Identifier*>(it->stxs[i].get())) {
+                                vars.push_back(tmp_var->s);
+                            } else {
+                                throw RuntimeError("Wrong with your var");
+                            }
+                        }
+                        return new Lambda(vars, stxs[2].get()->parse(env));
+                    } else {
+                        throw RuntimeError("Wrong with your var");
+                    }
                 }
                 case E_LETREC: {
                 }
@@ -217,8 +221,109 @@ Expr List ::parse(Assoc& env) {
         }
     }
     // first_ 是指向 List 类型的对象
-    if (dynamic_cast<List*>(first_) != nullptr) {
+    if (auto first_it = dynamic_cast<List*>(first_)) {
+        auto tmp_it = first_it->parse(env).get()->eval(env);
+        if (auto func_it = dynamic_cast<Closure*>(tmp_it.get())) {
+            if (func_it->e.get() != nullptr) {
+                switch (func_it->e.get()->e_type) {
+                    case E_MUL: {
+                        // *
+                        return new Mult(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_MINUS: {
+                        // -
+                        return new Minus(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_PLUS: {
+                        // +
+                        return new Plus(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_LT: {
+                        // <
+                        return new Less(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_LE: {
+                        // <=
+                        return new LessEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_EQ: {
+                        // ==
+                        return new Equal(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_GE: {
+                        // >=
+                        return new GreaterEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_GT: {
+                        // >
+                        return new Greater(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_EQQ: {
+                        // "eq?"
+                        return new IsEq(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_BOOLQ: {
+                        // "boolen?"
+                        return new IsBoolean(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_INTQ: {
+                        // "fixnum?"
+                        return new IsFixnum(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_NULLQ: {
+                        // "null?"
+                        return new IsNull(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_PAIRQ: {
+                        // "pair?"
+                        return new IsPair(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_PROCQ: {
+                        // "procedure?"
+                        return new IsProcedure(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_SYMBOLQ: {
+                        // "symbol?"
+                        return new IsSymbol(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_CONS: {
+                        // cons
+                        return new Cons(stxs[1].get()->parse(env), stxs[2].get()->parse(env));
+                        break;
+                    }
+                    case E_NOT: {
+                        // not
+                        return new Not(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_CAR: {
+                        // cdr
+                        return new Car(stxs[1].get()->parse(env));
+                        break;
+                    }
+                    case E_CDR: {
+                        checkArgCount(2, stxs.size());
+                        return new Cdr(stxs[1].get()->parse(env));
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
-
 #endif

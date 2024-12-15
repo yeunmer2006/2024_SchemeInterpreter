@@ -32,6 +32,7 @@ void modify(const std::string& x, const Value& v, Assoc& lst) {
 }  // 修改环境中已有的绑定
 
 Value find(const std::string& x, Assoc& l) {
+    // 如果链表中存在多个同名变量，第一个匹配到的（即离当前作用域最近的）变量就是当前有效的变量，而后续的同名变量相当于被遮蔽了。
     for (auto i = l; i.get() != nullptr; i = i->next)
         if (x == i->x)
             return i->v;    // 遍历链表，找到变量名为 x 的绑定，返回其值

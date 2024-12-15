@@ -7,6 +7,10 @@
 修改了quote的语法 实现了样例 (cdr (quote ((ll . lr) . (rl . rr)))) 中 . 号的判断和处理
 基本完成了对最基础REPL循环的实现
 
+### Third version
+重写了eval中+-*等基本运算符的基本逻辑 将其从let语句的枚举修改为 BInary的二级输出值
+实现了 IF Bigin语法 以及众多判断符号
+
 # 下面是本次作业内容
 
 ## Project 4: Scheme Interpreter
