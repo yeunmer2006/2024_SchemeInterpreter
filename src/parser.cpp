@@ -66,7 +66,7 @@ Expr List ::parse(Assoc& env) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    pair<string, Expr> tmp_pair = mp(Ident_it->s, pair_it->stxs.front().get()->parse(env));
+                                    pair<string, Expr> tmp_pair = mp(Ident_it->s, pair_it->stxs.back().get()->parse(env));
                                     bind_in.push_back(tmp_pair);
                                 }
                             }
