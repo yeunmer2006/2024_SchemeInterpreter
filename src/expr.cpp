@@ -10,8 +10,10 @@ using std ::vector;
 ExprBase ::ExprBase(ExprType et)
     : e_type(et) {}
 
-Expr ::Expr(): ptr(nullptr) {};
-Expr ::Expr(ExprBase* eb): ptr(eb) {}
+Expr ::Expr()
+    : ptr(nullptr) {};
+Expr ::Expr(ExprBase* eb)
+    : ptr(eb) {}
 ExprBase* Expr ::operator->() const {
     return ptr.get();
 }

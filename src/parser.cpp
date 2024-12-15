@@ -57,6 +57,22 @@ Expr List ::parse(Assoc& env) {
         if (reserved_words.count(id_name)) {
             switch (reserved_words[id_name]) {
                 case E_LET: {
+                    checkArgCount(3, stxs.size());
+                    std::vector<std::pair<std::string, Expr>> bind_in;
+                    if (auto list_it = dynamic_cast<List*>(stxs[1].get())) {
+                        // 读取绑定条件
+                        for (int i = 0; i < list_it->stxs.size(); i++) {
+                            // 判断是否为 Var expr 对
+                            if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
+                                checkArgCount(2, pair_it->stxs.size());
+                                if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
+                                    pair<string, Expr> tmp_pair = mp(Ident_it->s, pair_it->stxs.front().get()->parse(env));
+                                    bind_in.push_back(tmp_pair);
+                                }
+                            }
+                        }
+                    }
+                    return new Let(bind_in, stxs[2].get()->parse(env));
                 }
                 case E_LAMBDA: {
                     checkArgCount(3, stxs.size());

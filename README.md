@@ -11,6 +11,18 @@
 重写了eval中+-*等基本运算符的基本逻辑 将其从let语句的枚举修改为 BInary的二级输出值
 实现了 IF Bigin语法 以及众多判断符号
 
+### 4th version
+修改了Var的语法 以及对于list的处理
+
+### 5th version
+实现了Apply 初步完成了对于环境链表的操作
+
+### 6th version
+重写实现了List的解释 实现了List第一个字符为list的情况下的内容 完成了task 4
+
+### 7th version
+完成了Let语法
+
 # 下面是本次作业内容
 
 ## Project 4: Scheme Interpreter

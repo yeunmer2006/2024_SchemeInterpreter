@@ -17,7 +17,13 @@ void CheckVar(std::string x) {
     return;
 }
 
-Value Let::eval(Assoc& env) {}  // let expression
+Value Let::eval(Assoc& env) {
+    Assoc New_env = env;
+    for (auto bind_it : bind) {
+        New_env = extend(bind_it.first, bind_it.second.get()->eval(env), New_env);
+    }
+    return body.get()->eval(New_env);
+}  // let expression
 
 Value Lambda::eval(Assoc& env) {
     Assoc capturedEnv = env;  // 拷贝当前环境 深拷贝
