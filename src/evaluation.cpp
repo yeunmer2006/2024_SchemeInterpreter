@@ -21,11 +21,6 @@ Value Let::eval(Assoc& env) {}  // let expression
 
 Value Lambda::eval(Assoc& env) {
     Assoc capturedEnv = env;  // 拷贝当前环境 深拷贝
-    if (auto it = dynamic_cast<Var*>(e.get())) {
-        if (primitives.count(it->x)) {
-            return it->eval(env);
-        }
-    }
     return ClosureV(x, e, capturedEnv);
 }  // lambda expression
 
@@ -172,6 +167,37 @@ Value Var::eval(Assoc& e) {
                     // void
                     exp = (new MakeVoid());
                 }
+                case E_EXIT: {
+                    exp = (new Exit());
+                }
+                    // case E_LET: {
+                    // }
+                    // case E_LAMBDA: {
+                    //     std::vector<std::string> vars(3);
+                    //     vars[0] = "parm1";
+                    //     vars[1] = "parm2";
+                    //     for (int i = 0; i < vars.size(); i++) {
+                    //         parameters_.push_back(vars[i]);
+                    //     }
+                    //     exp = (new Lambda(vars,))
+                    // }
+                    // case E_LETREC: {
+                    // }
+                    // case E_IF: {
+                    //     checkArgCount(4, stxs.size());
+                    //     return new If(stxs[1].get()->parse(env), stxs[2].get()->parse(env), stxs[3].get()->parse(env));
+                    // }
+                    // case E_BEGIN: {
+                    //     vector<Expr> rand_;  // 参数列表
+                    //     for (int i = 1; i < stxs.size(); i++) {
+                    //         rand_.push_back(stxs[i].get()->parse(env));
+                    //     }
+                    //     return new Begin(rand_);
+                    // }
+                    // case E_QUOTE: {
+                    //     checkArgCount(2, stxs.size());
+                    //     return new Quote(stxs[1]);
+                    // }
             }
             if (dynamic_cast<Binary*>(exp.get())) {
                 parameters_.push_back("parm1");

@@ -48,7 +48,12 @@ Expr List ::parse(Assoc& env) {
 
     // first_ 是指向 Identifier类型的对象 比如保留字
     if (auto id = dynamic_cast<Identifier*>(first_)) {
+        // vector<Expr> rand_;  // 参数列表
+        // for (int i = 1; i < stxs.size(); i++) {
+        //     rand_.push_back(stxs[i].get()->parse(env));
+        // }
         string id_name = id->s;
+        // return new Apply(first_->parse(env), rand_);
         if (reserved_words.count(id_name)) {
             switch (reserved_words[id_name]) {
                 case E_LET: {
@@ -91,10 +96,6 @@ Expr List ::parse(Assoc& env) {
         }
         // 检查是否是保留字
         if (primitives.count(id_name) || dynamic_cast<Closure*>(find(id_name, env).get())) {
-            vector<Expr> rand_;  // 参数列表
-            for (int i = 1; i < stxs.size(); i++) {
-                rand_.push_back(stxs[i].get()->parse(env));
-            }
             switch (primitives[id_name]) {
                 case E_MUL: {
                     // *
