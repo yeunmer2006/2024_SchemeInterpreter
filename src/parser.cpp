@@ -41,8 +41,7 @@ Expr FalseSyntax ::parse(Assoc& env) {
 
 Expr List ::parse(Assoc& env) {
     if (stxs.empty()) {
-        List* it = new List;
-        return new Quote(it);
+        throw RuntimeError("RE");
     }
     SyntaxBase* first_ = stxs[0].get();  // 先处理第一个
 
