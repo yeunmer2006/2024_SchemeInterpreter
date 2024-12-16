@@ -61,7 +61,8 @@ Expr List ::parse(Assoc& env) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    pair<string, Expr> tmp_pair = mp(Ident_it->s, pair_it->stxs.back().get()->parse(env));
+                                    Expr temp_expr = pair_it->stxs.back().get()->parse(env);
+                                    pair<string, Expr> tmp_pair = mp(Ident_it->s, temp_expr);
                                     bind_in.push_back(tmp_pair);
                                 }
                             }
@@ -91,15 +92,15 @@ Expr List ::parse(Assoc& env) {
                     std::vector<std::pair<std::string, Expr>> bind_in;
                     Assoc env1 = env;
                     Assoc env2 = env;
+
+                    // 处理绑定条件（绑定变量并初始化为空）
                     if (auto list_it = dynamic_cast<List*>(stxs[1].get())) {
-                        // 读取绑定条件
-                        // 第一次遍历：声明变量，绑定 nullptr 到env1
+                        // 第一次遍历：声明变量，绑定 nullptr 到 env1
                         for (int i = 0; i < list_it->stxs.size(); i++) {
-                            // 判断是否为 Var expr 对
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    env1 = extend(Ident_it->s, Value(nullptr), env1);
+                                    env1 = extend(Ident_it->s, NullV(), env1);  // 将变量绑定到 NullV()
                                 } else {
                                     throw RuntimeError("Not Var Expr* parm");
                                 }
@@ -107,25 +108,24 @@ Expr List ::parse(Assoc& env) {
                                 throw RuntimeError("Not List parm");
                             }
                         }
+
                         // 第二次遍历：计算值并绑定到 env2
                         env2 = env1;
                         for (int i = 0; i < list_it->stxs.size(); i++) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    auto expr = pair_it->stxs.back().get()->parse(env1);
-                                    env2 = extend(Ident_it->s, expr->eval(env2), env2);
-                                    bind_in.push_back(mp(Ident_it->s, expr));
-                                } else {
-                                    throw RuntimeError("Not Var Expr* parm");
+                                    // 计算绑定表达式的值
+                                    Expr tem_expr = pair_it->stxs.back().get()->parse(env1);
+                                    // 将绑定的值更新到 env2
+                                    env2 = extend(Ident_it->s, tem_expr->eval(env2), env2);
+                                    bind_in.push_back(mp(Ident_it->s, tem_expr));
                                 }
-                            } else {
-                                throw RuntimeError("Not List parm");
                             }
                         }
                     } else {
                         throw RuntimeError("Not List parm");
                     }
-                    return new Letrec(bind_in, stxs[2].get()->parse(env2));
+                    return new Letrec(bind_in, stxs[2].get()->parse(env2));  // 返回 Letrec
                 }
                 case E_IF: {
                     checkArgCount(4, stxs.size());

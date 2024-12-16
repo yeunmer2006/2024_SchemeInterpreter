@@ -53,7 +53,7 @@ std::string MakeString(Syntax& now) {
 Value Let::eval(Assoc& env) {
     Assoc New_env = env;
     for (auto bind_it : bind) {
-        New_env = extend(bind_it.first, bind_it.second.get()->eval(env), New_env);
+        New_env = extend(bind_it.first, bind_it.second.get()->eval(New_env), New_env);
     }
     return body.get()->eval(New_env);
 }  // let expression
@@ -65,15 +65,15 @@ Value Lambda::eval(Assoc& env) {
 
 Value Apply::eval(Assoc& e) {
     Value func = rator.get()->eval(e);
-    auto closure_ = dynamic_cast<Closure*>(func.get());
-    if (!closure_) {
+    if (func.get()->v_type != V_PROC) {
         throw RuntimeError("RuntimeError: Not a procedure");
     }
+    auto closure_ = dynamic_cast<Closure*>(func.get());
 
     // 2.对 rand 中的每个实参数求值
     std::vector<Value> evaluatedArgs;
-    for (const auto& operand : rand) {
-        evaluatedArgs.push_back(operand->eval(e));  // 依次对每个参数求值
+    for (const auto& rand : rand) {
+        evaluatedArgs.push_back(rand->eval(e));  // 依次对每个参数求值
     }
 
     // 3.检查参数数量 实参形参是否匹配
@@ -92,8 +92,15 @@ Value Apply::eval(Assoc& e) {
 
 Value Letrec::eval(Assoc& env) {
     Assoc New_env = env;
-    for (auto bind_it : bind) {
-        New_env = extend(bind_it.first, bind_it.second.get()->eval(New_env), New_env);
+
+    // 1. 先将所有变量绑定到 nullptr
+    for (const auto& bind_it : bind) {
+        New_env = extend(bind_it.first, NullV(), New_env);
+    }
+    // 2 . 再次求值
+    for (const auto& bind_it : bind) {
+        Value val = bind_it.second->eval(New_env);
+        modify(bind_it.first, val, New_env);
     }
     return body.get()->eval(New_env);
 }  // letrec expression
