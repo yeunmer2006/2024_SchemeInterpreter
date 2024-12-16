@@ -273,7 +273,7 @@ Value Quote::eval(Assoc& e) {
             if (auto tmp_it = dynamic_cast<List*>(it->stxs.front().get())) {
                 Value firstValue = SymbolV(MakeString(it->stxs.front()));
                 return PairV(firstValue, NullV());
-            } else if (auto tmp_it = dynamic_cast<Var*>(it->stxs.front().get())) {
+            } else if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
                 Value firstValue = SymbolV(MakeString(it->stxs.front()));
                 return PairV(firstValue, NullV());
             } else {
@@ -311,7 +311,7 @@ Value Quote::eval(Assoc& e) {
             if (auto tmp_it = dynamic_cast<List*>(it->stxs.front().get())) {
                 Value firstValue = SymbolV(MakeString(it->stxs.front()));
                 return PairV(firstValue, restValue);
-            } else if (auto tmp_it = dynamic_cast<Var*>(it->stxs.front().get())) {
+            } else if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
                 Value firstValue = SymbolV(MakeString(it->stxs.front()));
                 return PairV(firstValue, restValue);
             } else {
