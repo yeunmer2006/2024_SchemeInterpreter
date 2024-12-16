@@ -45,7 +45,7 @@ Value Apply::eval(Assoc& e) {
 
     // 3.检查参数数量 实参形参是否匹配
     if (evaluatedArgs.size() != closure_->parameters.size()) {
-        // throw RuntimeError("RuntimeError: Argument count mismatch");
+        throw RuntimeError("RuntimeError: Argument count mismatch");
     }
 
     // 4.创建新作用域，将形参与实参绑定
