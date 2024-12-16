@@ -12,14 +12,14 @@ extern std ::map<std ::string, ExprType> reserved_words;
 
 void CheckVar(std::string name) {
     if (name.empty())
-        throw RuntimeError("RE");
+        throw RuntimeError("RE in CheckVar");
 
     char firstChar = name[0];
     if (std::isdigit(firstChar) || firstChar == '.' || firstChar == '@')
-        throw RuntimeError("RE");
+        throw RuntimeError("RE in CheckVar");
     for (int i = 0; i < name.size(); i++) {
         if (name[i] == '#') {
-            throw RuntimeError("RE");
+            throw RuntimeError("RE in CheckVar");
         }
     }
 
@@ -47,13 +47,14 @@ std::string MakeString(Syntax& now) {
         res += ")";
         return res;
     } else {
-        throw RuntimeError("RE");
+        throw RuntimeError("Error in MakeString");
     }
 }
 Value Let::eval(Assoc& env) {
     Assoc New_env = env;
     for (auto bind_it : bind) {
-        New_env = extend(bind_it.first, bind_it.second.get()->eval(New_env), New_env);
+        // 不允许相互引用
+        New_env = extend(bind_it.first, bind_it.second.get()->eval(env), New_env);
     }
     return body.get()->eval(New_env);
 }  // let expression
@@ -232,7 +233,7 @@ Value Var::eval(Assoc& e) {
             }
             return ClosureV(parameters_, exp, e);
         } else {
-            throw RuntimeError("RE");
+            throw RuntimeError("Error in Var->eval");
         }
     } else {
         return it;
@@ -511,7 +512,7 @@ Value Car::evalRator(const Value& rand) {
     if (auto it = dynamic_cast<Pair*>(rand.get())) {
         return it->car;
     } else {
-        throw RuntimeError("RE");
+        throw RuntimeError("RE in Car eval");
     }
 
 }  // car
@@ -520,6 +521,6 @@ Value Cdr::evalRator(const Value& rand) {
     if (auto it = dynamic_cast<Pair*>(rand.get())) {
         return it->cdr;
     } else {
-        throw RuntimeError("RE");
+        throw RuntimeError("RE in Cdr eval");
     }
 }  // cdr

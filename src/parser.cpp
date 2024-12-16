@@ -41,7 +41,7 @@ Expr FalseSyntax ::parse(Assoc& env) {
 
 Expr List ::parse(Assoc& env) {
     if (stxs.empty()) {
-        throw RuntimeError("RE");
+        throw RuntimeError("RE for empty list");
     }
     SyntaxBase* first_ = stxs[0].get();  // 先处理第一个
 
@@ -49,11 +49,22 @@ Expr List ::parse(Assoc& env) {
     if (dynamic_cast<Identifier*>(first_)) {
         auto id = dynamic_cast<Identifier*>(first_);
         string id_name = id->s;
+        Value find_name_in_Env = find(id_name, env);
+        if (find_name_in_Env.get() != nullptr) {
+            // 说明被重定义了
+            vector<Expr> rand_;  // 参数列表
+            for (int i = 1; i < stxs.size(); i++) {
+                rand_.push_back(stxs[i].get()->parse(env));
+            }
+            return new Apply(first_->parse(env), rand_);
+        }
+
         if (reserved_words.count(id_name)) {
             switch (reserved_words[id_name]) {
                 case E_LET: {
                     checkArgCount(3, stxs.size());
                     std::vector<std::pair<std::string, Expr>> bind_in;
+                    Assoc New_env = env;
                     if (auto list_it = dynamic_cast<List*>(stxs[1].get())) {
                         // 读取绑定条件
                         for (int i = 0; i < list_it->stxs.size(); i++) {
@@ -61,14 +72,15 @@ Expr List ::parse(Assoc& env) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    Expr temp_expr = pair_it->stxs.back().get()->parse(env);
+                                    Expr temp_expr = pair_it->stxs.back().get()->parse(New_env);
                                     pair<string, Expr> tmp_pair = mp(Ident_it->s, temp_expr);
                                     bind_in.push_back(tmp_pair);
                                 }
                             }
                         }
                     }
-                    return new Let(bind_in, stxs[2].get()->parse(env));
+                    return new Let(bind_in, stxs[2].parse(env));
+                    break;
                 }
                 case E_LAMBDA: {
                     checkArgCount(3, stxs.size());
@@ -86,6 +98,7 @@ Expr List ::parse(Assoc& env) {
                     } else {
                         throw RuntimeError("Wrong with your var");
                     }
+                    break;
                 }
                 case E_LETREC: {
                     checkArgCount(3, stxs.size());
@@ -126,10 +139,12 @@ Expr List ::parse(Assoc& env) {
                         throw RuntimeError("Not List parm");
                     }
                     return new Letrec(bind_in, stxs[2].get()->parse(env2));  // 返回 Letrec
+                    break;
                 }
                 case E_IF: {
                     checkArgCount(4, stxs.size());
                     return new If(stxs[1].get()->parse(env), stxs[2].get()->parse(env), stxs[3].get()->parse(env));
+                    break;
                 }
                 case E_BEGIN: {
                     vector<Expr> rand_;  // 参数列表
@@ -137,10 +152,12 @@ Expr List ::parse(Assoc& env) {
                         rand_.push_back(stxs[i].get()->parse(env));
                     }
                     return new Begin(rand_);
+                    break;
                 }
                 case E_QUOTE: {
                     checkArgCount(2, stxs.size());
                     return new Quote(stxs[1]);
+                    break;
                 }
             }
         }
@@ -148,17 +165,11 @@ Expr List ::parse(Assoc& env) {
         if (primitives.count(id_name)) {
             vector<Expr> rand_;  // 参数列表
             for (int i = 1; i < stxs.size(); i++) {
-                auto tmo = stxs[i];
                 rand_.push_back(stxs[i].get()->parse(env));
             }
             return new Apply(first_->parse(env), rand_);
         }
-
-        vector<Expr> rand_;
-        for (int i = 1; i < stxs.size(); i++) {
-            rand_.push_back(stxs[i].get()->parse(env));
-        }
-        return new Apply(id->parse(env), rand_);
+        throw RuntimeError("RE dont do ");
     }
     // first_ 是指向 List 类型的对象
     if (auto first_it = dynamic_cast<List*>(first_)) {
@@ -168,6 +179,6 @@ Expr List ::parse(Assoc& env) {
         }
         return new Apply(first_it->parse(env), rand_);  // 传入引用
     }
-    throw RuntimeError("RE");
+    throw RuntimeError("RE : nothing to do");
 }
 #endif
