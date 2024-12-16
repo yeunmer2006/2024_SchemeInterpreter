@@ -144,11 +144,11 @@ Expr List ::parse(Assoc& env) {
         }
         // 检查是否是保留字
         if (primitives.count(id_name)) {
-            vector<Expr> rand_;  // 参数列表
-            for (int i = 1; i < stxs.size(); i++) {
-                rand_.push_back(stxs[i].get()->parse(env));
-            }
-            return new Apply(first_->parse(env), rand_);
+            // vector<Expr> rand_;  // 参数列表
+            // for (int i = 1; i < stxs.size(); i++) {
+            //     rand_.push_back(stxs[i].get()->parse(env));
+            // }
+            // return new Apply(first_->parse(env), rand_);
             switch (primitives[id_name]) {
                 case E_MUL: {
                     // *
