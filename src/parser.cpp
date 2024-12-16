@@ -295,5 +295,6 @@ Expr List ::parse(Assoc& env) {
         }
         return new Apply(first_it->parse(env), rand_);  // 传入引用
     }
+    throw RuntimeError("RE");
 }
 #endif
