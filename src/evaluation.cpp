@@ -279,18 +279,8 @@ Value Quote::eval(Assoc& e) {
             // 空列表判断为NUll
             return NullV();
         } else if (it->stxs.size() == 1) {
-            // 列表中的 list 和 var都不求值 直接转化为symbol
-            if (auto tmp_it = dynamic_cast<List*>(it->stxs.front().get())) {
-                // if((!tmp_it->stxs.empty()))
-                Value firstValue = SymbolV(MakeString(it->stxs.front()));
-                return PairV(firstValue, NullV());
-            } else if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
-                Value firstValue = SymbolV(MakeString(it->stxs.front()));
-                return PairV(firstValue, NullV());
-            } else {
-                Value firstValue = it->stxs.front().parse(e).get()->eval(e);
-                return PairV(firstValue, NullV());
-            }  // List 中 存储第一个syntax进行parser之后再进行eval
+            Value firstValue = Quote(it->stxs[0]).eval(e);
+            return PairV(firstValue, NullV());
         } else {
             // 先检查是不是 (a . b) 格式
             int find_dot_pos = -1, find_dot_cnt = 0;
@@ -303,6 +293,9 @@ Value Quote::eval(Assoc& e) {
                 }
             }
             if (find_dot_cnt > 1 || ((find_dot_pos != it->stxs.size() - 2) && (find_dot_cnt))) {
+                throw RuntimeError("Parm isn't fit");
+            }
+            if (find_dot_cnt == 1 && (it->stxs.size() < 3)) {
                 throw RuntimeError("Parm isn't fit");
             }
             if (it->stxs.size() == 3) {
@@ -318,17 +311,8 @@ Value Quote::eval(Assoc& e) {
             List* remain_list = new List;
             (*remain_list).stxs = std::vector<Syntax>(it->stxs.begin() + 1, it->stxs.end());
             Value restValue = Quote(Syntax(remain_list)).eval(e);
-            // 列表中的 list 和 var都不求值 直接转化为symbol
-            if (auto tmp_it = dynamic_cast<List*>(it->stxs.front().get())) {
-                Value firstValue = SymbolV(MakeString(it->stxs.front()));
-                return PairV(firstValue, restValue);
-            } else if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
-                Value firstValue = SymbolV(MakeString(it->stxs.front()));
-                return PairV(firstValue, restValue);
-            } else {
-                Value firstValue = it->stxs.front().parse(e).get()->eval(e);
-                return PairV(firstValue, restValue);
-            }  // List 中 存储第一个syntax进行parser之后再进行eval
+            Value firstValue = Quote(it->stxs.front()).eval(e);
+            return PairV(firstValue, restValue);
         }
     } else {
         throw RuntimeError("Unsupported Expr type for quote.");
