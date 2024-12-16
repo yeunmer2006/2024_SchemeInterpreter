@@ -10,10 +10,19 @@
 extern std ::map<std ::string, ExprType> primitives;
 extern std ::map<std ::string, ExprType> reserved_words;
 
-void CheckVar(std::string x) {
-    if ((x.front() >= '0' && x.front() <= '9') || (x.front() == '.') || (x.front() == '@')) {
-        throw RuntimeError("Wrong with your var");
+void CheckVar(std::string name) {
+    if (name.empty())
+        throw RuntimeError("RE");
+
+    char firstChar = name[0];
+    if (std::isdigit(firstChar) || firstChar == '.' || firstChar == '@')
+        throw RuntimeError("RE");
+    for (int i = 0; i < name.size(); i++) {
+        if (name[i] == '#') {
+            throw RuntimeError("RE");
+        }
     }
+
     return;
 }
 
@@ -37,6 +46,8 @@ std::string MakeString(Syntax& now) {
         }
         res += ")";
         return res;
+    } else {
+        throw RuntimeError("RE");
     }
 }
 Value Let::eval(Assoc& env) {
@@ -246,12 +257,11 @@ Value False::eval(Assoc& e) {
 }  // evaluation of #f
 
 Value Begin::eval(Assoc& e) {
+    Value task_value(nullptr);
     for (int it = 0; it < es.size(); it++) {
-        auto task_value = es[it].get()->eval(e);
-        if (it == es.size() - 1) {
-            return task_value;
-        }
+        task_value = es[it].get()->eval(e);
     }
+    return task_value;
 }  // begin expression
 
 Value Quote::eval(Assoc& e) {
@@ -271,6 +281,7 @@ Value Quote::eval(Assoc& e) {
         } else if (it->stxs.size() == 1) {
             // 列表中的 list 和 var都不求值 直接转化为symbol
             if (auto tmp_it = dynamic_cast<List*>(it->stxs.front().get())) {
+                // if((!tmp_it->stxs.empty()))
                 Value firstValue = SymbolV(MakeString(it->stxs.front()));
                 return PairV(firstValue, NullV());
             } else if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
@@ -418,20 +429,24 @@ Value IsEq::evalRator(const Value& rand1, const Value& rand2) {
         if (auto it2 = dynamic_cast<Integer*>(rand2.get())) {
             return ((it1->n == it2->n) ? BooleanV(1) : BooleanV(0));
         }
+        throw RuntimeError("Wrong with your parametric");
     } else if (auto it1 = dynamic_cast<Boolean*>(rand1.get())) {
         if (auto it2 = dynamic_cast<Boolean*>(rand2.get())) {
             return ((it1->b == it2->b) ? BooleanV(1) : BooleanV(0));
         }
+        throw RuntimeError("Wrong with your parametric");
     } else if (auto it1 = dynamic_cast<Symbol*>(rand1.get())) {
         if (auto it2 = dynamic_cast<Symbol*>(rand2.get())) {
             return ((it1->s == it2->s) ? BooleanV(1) : BooleanV(0));
         }
+        throw RuntimeError("Wrong with your parametric");
     } else if (dynamic_cast<Null*>(rand1.get()) || dynamic_cast<Null*>(rand2.get())) {
         if (dynamic_cast<Null*>(rand1.get()) && dynamic_cast<Null*>(rand2.get())) {
             return BooleanV(1);
         } else {
             return BooleanV(0);
         }
+        throw RuntimeError("Wrong with your parametric");
     } else if (dynamic_cast<Void*>(rand1.get()) || dynamic_cast<Void*>(rand2.get())) {
         if (dynamic_cast<Void*>(rand1.get()) && dynamic_cast<Void*>(rand2.get())) {
             return BooleanV(1);
