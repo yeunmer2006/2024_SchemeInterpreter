@@ -91,7 +91,7 @@ Expr List ::parse(Assoc& env) {
                     checkArgCount(3, stxs.size());
                     std::vector<std::pair<std::string, Expr>> bind_in;
                     Assoc env1 = env;
-                    Assoc env2 = env1;
+                    Assoc env2 = env;
                     if (auto list_it = dynamic_cast<List*>(stxs[1].get())) {
                         // 读取绑定条件
                         // 第一次遍历：声明变量，绑定 nullptr 到env1
@@ -108,14 +108,14 @@ Expr List ::parse(Assoc& env) {
                                 throw RuntimeError("Not List parm");
                             }
                         }
-                        // 第二次遍历：计算值并更新 env2
+                        // 第二次遍历：计算值并绑定到 env2
                         env2 = env1;
                         for (int i = 0; i < list_it->stxs.size(); i++) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    pair<string, Expr> tmp_pair = mp(Ident_it->s, pair_it->stxs.back().get()->parse(env1));
-                                    env2 = extend(tmp_pair.first, tmp_pair.second.get()->eval(env1), env2);
-                                    bind_in.push_back(tmp_pair);
+                                    auto expr = pair_it->stxs.back().get()->parse(env1);
+                                    env2 = extend(Ident_it->s, expr->eval(env2), env2);
+                                    bind_in.push_back(mp(Ident_it->s, expr));
                                 } else {
                                     throw RuntimeError("Not Var Expr* parm");
                                 }
@@ -123,6 +123,8 @@ Expr List ::parse(Assoc& env) {
                                 throw RuntimeError("Not List parm");
                             }
                         }
+                    } else {
+                        throw RuntimeError("Not List parm");
                     }
                     return new Letrec(bind_in, stxs[2].get()->parse(env2));
                 }
@@ -147,21 +149,17 @@ Expr List ::parse(Assoc& env) {
         if (primitives.count(id_name)) {
             vector<Expr> rand_;  // 参数列表
             for (int i = 1; i < stxs.size(); i++) {
+                auto tmo = stxs[i];
                 rand_.push_back(stxs[i].get()->parse(env));
             }
             return new Apply(first_->parse(env), rand_);
         }
-        auto now_it = find(id_name, env);
 
-        if (now_it.get() != nullptr) {
-            vector<Expr> rand_;  // 参数列表
-            for (int i = 1; i < stxs.size(); i++) {
-                rand_.push_back(stxs[i].get()->parse(env));
-            }
-            return new Apply(id->parse(env), rand_);
-        } else {
-            throw RuntimeError("RE");
+        vector<Expr> rand_;
+        for (int i = 1; i < stxs.size(); i++) {
+            rand_.push_back(stxs[i].get()->parse(env));
         }
+        return new Apply(id->parse(env), rand_);
     }
     // first_ 是指向 List 类型的对象
     if (auto first_it = dynamic_cast<List*>(first_)) {

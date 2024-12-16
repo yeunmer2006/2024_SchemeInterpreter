@@ -17,6 +17,28 @@ void CheckVar(std::string x) {
     return;
 }
 
+std::string MakeString(Syntax& now) {
+    if (auto it = dynamic_cast<Number*>(now.get())) {
+        return std::to_string(it->n);
+    } else if (auto it = dynamic_cast<TrueSyntax*>(now.get())) {
+        return std::string("#t");
+    } else if (auto it = dynamic_cast<FalseSyntax*>(now.get())) {
+        return std::string("#f");
+    } else if (auto it = dynamic_cast<Identifier*>(now.get())) {
+        return it->s;
+    } else if (auto it = dynamic_cast<List*>(now.get())) {
+        // 现在是在quote中 所以不求值直接返回值
+        std::string res = "(";
+        for (int i = 0; i < it->stxs.size(); i++) {
+            if (i > 0) {
+                res += " ";  // 加一个空格
+            }
+            res += MakeString(it->stxs[i]);
+        }
+        res += ")";
+        return res;
+    }
+}
 Value Let::eval(Assoc& env) {
     Assoc New_env = env;
     for (auto bind_it : bind) {
@@ -60,7 +82,7 @@ Value Apply::eval(Assoc& e) {
 Value Letrec::eval(Assoc& env) {
     Assoc New_env = env;
     for (auto bind_it : bind) {
-        New_env = extend(bind_it.first, bind_it.second.get()->eval(env), New_env);
+        New_env = extend(bind_it.first, bind_it.second.get()->eval(New_env), New_env);
     }
     return body.get()->eval(New_env);
 }  // letrec expression
@@ -247,13 +269,31 @@ Value Quote::eval(Assoc& e) {
             // 空列表判断为NUll
             return NullV();
         } else if (it->stxs.size() == 1) {
-            if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
-                // 是表示符 则为了防止是保留字强制转化为 symbol
-                return PairV(SymbolV(tmp_it->s), NullV());
-            } else
-                return PairV(it->stxs.front().parse(e).get()->eval(e), NullV());
+            // 列表中的 list 和 var都不求值 直接转化为symbol
+            if (auto tmp_it = dynamic_cast<List*>(it->stxs.front().get())) {
+                Value firstValue = SymbolV(MakeString(it->stxs.front()));
+                return PairV(firstValue, NullV());
+            } else if (auto tmp_it = dynamic_cast<Var*>(it->stxs.front().get())) {
+                Value firstValue = SymbolV(MakeString(it->stxs.front()));
+                return PairV(firstValue, NullV());
+            } else {
+                Value firstValue = it->stxs.front().parse(e).get()->eval(e);
+                return PairV(firstValue, NullV());
+            }  // List 中 存储第一个syntax进行parser之后再进行eval
         } else {
             // 先检查是不是 (a . b) 格式
+            int find_dot_pos = -1, find_dot_cnt = 0;
+            for (int i = 0; i < it->stxs.size(); i++) {
+                if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs[i].get())) {
+                    if (tmp_it->s == ".") {
+                        find_dot_pos = i;
+                        find_dot_cnt++;
+                    }
+                }
+            }
+            if (find_dot_cnt > 1 || ((find_dot_pos != it->stxs.size() - 2) && (find_dot_cnt))) {
+                throw RuntimeError("Parm isn't fit");
+            }
             if (it->stxs.size() == 3) {
                 if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs[1].get())) {
                     if (tmp_it->s == ".") {
@@ -267,8 +307,12 @@ Value Quote::eval(Assoc& e) {
             List* remain_list = new List;
             (*remain_list).stxs = std::vector<Syntax>(it->stxs.begin() + 1, it->stxs.end());
             Value restValue = Quote(Syntax(remain_list)).eval(e);
-            if (auto tmp_it = dynamic_cast<Identifier*>(it->stxs.front().get())) {
-                Value firstValue = SymbolV(tmp_it->s);
+            // 列表中的 list 和 var都不求值 直接转化为symbol
+            if (auto tmp_it = dynamic_cast<List*>(it->stxs.front().get())) {
+                Value firstValue = SymbolV(MakeString(it->stxs.front()));
+                return PairV(firstValue, restValue);
+            } else if (auto tmp_it = dynamic_cast<Var*>(it->stxs.front().get())) {
+                Value firstValue = SymbolV(MakeString(it->stxs.front()));
                 return PairV(firstValue, restValue);
             } else {
                 Value firstValue = it->stxs.front().parse(e).get()->eval(e);
