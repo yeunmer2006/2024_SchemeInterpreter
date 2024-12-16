@@ -40,7 +40,7 @@ struct Lambda : ExprBase {
 
 struct Apply : ExprBase {
     Expr rator;              // 表示被调用函数
-    std::vector<Expr> rand;  // 储存参数的容器
+    std::vector<Expr> rand;  // 储存实际参数的容器
     Apply(const Expr&, const std ::vector<Expr>&);
     virtual Value eval(Assoc&) override;
 };  // this is used to handle function calling, where rator is the operator and rands are operands 表示函数调用
