@@ -23,6 +23,9 @@
 ### 7th version
 完成了Let语法
 
+### 8th version
+修改了list解析逻辑 使得(let ([+ -]) (+ 2 1))的返回值为1而不是3
+
 # 下面是本次作业内容
 
 ## Project 4: Scheme Interpreter

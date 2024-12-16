@@ -2,16 +2,32 @@
 
 2 . 问题 ：
 
-``` if (auto first_it = dynamic_cast<List*>(first_)) {
+``` if (auto first_it = dynamic_cast<List*>(first_)) 
         auto tmp_it = first_it->parse(env).get()->eval(env);
-        if (auto func_it = dynamic_cast<Closure*>(tmp_it.get())) {
-            if (func_it->e.get() != nullptr) {
+        if (auto func_it = dynamic_cast<Closure*>(tmp_it.get())) 
+            if (func_it->e.get() != nullptr) 
     
     与
 
-``` if (auto first_it = dynamic_cast<List*>(first_)) {
+``` if (auto first_it = dynamic_cast<List*>(first_)) 
         auto tmp_it = first_it->parse(env).get()->eval(env).get();
-        if (auto func_it = dynamic_cast<Closure*>(tmp_it)) {
-            if (func_it->e.get() != nullptr) {
+        if (auto func_it = dynamic_cast<Closure*>(tmp_it)) 
+            if (func_it->e.get() != nullptr) 
 
     的区别是什么 为什么第一个是真确的 但是第二个会导致原先传进来的参数变成乱码
+
+
+3. 问题： 与上一问题类似 下面两个为啥第一个返回的值是原本的value值 而第二个的it的值是一个有问题的值
+
+{
+        auto tmp_ = cond.get()->eval(e);
+        auto it = dynamic_cast<Boolean*>(tmp_.get())
+                                                        }
+
+{
+        auto it = dynamic_cast<Boolean*>(cond.get()->eval(e).get())
+                                                                        }
+
+        结论 ：问题的根本原因 C++ 标准规定 临时对象的生命周期：临时对象的生命周期通常会持续到其完整表达式结束。
+        在第二段代码中，cond.get()->eval(e) 的返回值是一个临时 std::unique_ptr 对象，
+        它的生命周期只存在于表达式 cond.get()->eval(e).get() 中。一旦 .get() 执行完毕，临时对象被销毁，对象的内存也被释放。

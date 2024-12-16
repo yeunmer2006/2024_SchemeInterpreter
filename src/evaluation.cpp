@@ -57,7 +57,13 @@ Value Apply::eval(Assoc& e) {
     return closure_->e.get()->eval(newEnv);  // 在新环境中求值
 }  // for function calling
 
-Value Letrec::eval(Assoc& env) {}  // letrec expression
+Value Letrec::eval(Assoc& env) {
+    Assoc New_env = env;
+    for (auto bind_it : bind) {
+        New_env = extend(bind_it.first, bind_it.second.get()->eval(env), New_env);
+    }
+    return body.get()->eval(New_env);
+}  // letrec expression
 
 Value Var::eval(Assoc& e) {
     // 先检查是否合法
@@ -176,39 +182,11 @@ Value Var::eval(Assoc& e) {
                 case E_EXIT: {
                     exp = (new Exit());
                 }
-                    // case E_LET: {
-                    // }
-                    // case E_LAMBDA: {
-                    //     std::vector<std::string> vars(3);
-                    //     vars[0] = "parm1";
-                    //     vars[1] = "parm2";
-                    //     for (int i = 0; i < vars.size(); i++) {
-                    //         parameters_.push_back(vars[i]);
-                    //     }
-                    //     exp = (new Lambda(vars,))
-                    // }
-                    // case E_LETREC: {
-                    // }
-                    // case E_IF: {
-                    //     checkArgCount(4, stxs.size());
-                    //     return new If(stxs[1].get()->parse(env), stxs[2].get()->parse(env), stxs[3].get()->parse(env));
-                    // }
-                    // case E_BEGIN: {
-                    //     vector<Expr> rand_;  // 参数列表
-                    //     for (int i = 1; i < stxs.size(); i++) {
-                    //         rand_.push_back(stxs[i].get()->parse(env));
-                    //     }
-                    //     return new Begin(rand_);
-                    // }
-                    // case E_QUOTE: {
-                    //     checkArgCount(2, stxs.size());
-                    //     return new Quote(stxs[1]);
-                    // }
             }
             if (dynamic_cast<Binary*>(exp.get())) {
                 parameters_.push_back("parm1");
                 parameters_.push_back("parm2");
-            } else {
+            } else if (dynamic_cast<Unary*>(exp.get())) {
                 parameters_.push_back("parm");
             }
             return ClosureV(parameters_, exp, e);
@@ -225,13 +203,15 @@ Value Fixnum::eval(Assoc& e) {
 }  // evaluation of a fixnum
 
 Value If::eval(Assoc& e) {
-    if (auto it = dynamic_cast<False*>(cond.get())) {
-        auto it_value = alter.get()->eval(e);
-        return it_value;
-    } else {
-        auto it_value = conseq.get()->eval(e);
-        return it_value;
+    auto tmp_ = cond.get()->eval(e);
+    if (auto it = dynamic_cast<Boolean*>(tmp_.get())) {
+        if (it->b == 0) {
+            auto it_value = alter.get()->eval(e);
+            return it_value;
+        }
     }
+    auto it_value = conseq.get()->eval(e);
+    return it_value;
 }  // if expression
 
 Value True::eval(Assoc& e) {
