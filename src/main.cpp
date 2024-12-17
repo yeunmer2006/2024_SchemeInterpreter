@@ -20,7 +20,9 @@ void REPL() {
         Syntax stx = readSyntax(std ::cin);  // read
         try {
             Expr expr = stx->parse(global_env);  // parse
+
             // stx -> show(std :: cout); // syntax print
+
             Value val = expr->eval(global_env);
             if (val->v_type == V_TERMINATE)
                 break;

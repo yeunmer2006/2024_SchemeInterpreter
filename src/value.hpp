@@ -52,7 +52,7 @@ struct Void : ValueBase {
     Void();
     virtual void show(std::ostream&) override;
 };
-Value VoidV();  // 值构造函数（返回封装的 Value 对象）
+Value VoidV();  // 值构造函数返回封装的 Value 对象
 
 // 整数value
 struct Integer : ValueBase {

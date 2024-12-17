@@ -131,7 +131,6 @@ Expr List ::parse(Assoc& env) {
                                 throw RuntimeError("Not List parm");
                             }
                         }
-
                         // 第二次遍历：计算值并绑定到 env2
                         for (int i = 0; i < list_it->stxs.size(); i++) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {

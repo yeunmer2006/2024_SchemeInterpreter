@@ -89,15 +89,11 @@ Value Letrec::eval(Assoc& env) {
     for (const auto& bind_now : bind) {
         env1 = extend(bind_now.first, Value(nullptr), env1);
     }
-
     std::vector<std::pair<std::string, Value>> bind_it;
-
     for (const auto& bind_now : bind) {
         bind_it.push_back(std::make_pair(bind_now.first, bind_now.second->eval(env1)));
     }
-
     Assoc env2 = env1;
-
     for (const auto& bind_now : bind_it) {
         modify(bind_now.first, bind_now.second, env2);
     }
