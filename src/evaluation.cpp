@@ -78,23 +78,31 @@ Value Apply::eval(Assoc& e) {
 }  // for function calling
 
 Value Letrec::eval(Assoc& env) {
-    Assoc New_env = env;
+    // 查重
     std::unordered_set<string> var_names;
     for (const auto& bind_it : bind) {
         if (!var_names.insert(bind_it.first).second) {
             throw RuntimeError("Duplicate variable in let binding: " + bind_it.first);
         }
     }
-    // 1. 先将所有变量绑定到 nullptr
-    for (const auto& bind_it : bind) {
-        New_env = extend(bind_it.first, NullV(), New_env);
+    Assoc env1 = env;
+    for (const auto& bind_now : bind) {
+        env1 = extend(bind_now.first, Value(nullptr), env1);
     }
-    // 2 . 再次求值
-    for (const auto& bind_it : bind) {
-        Value val = bind_it.second->eval(New_env);
-        modify(bind_it.first, val, New_env);
+
+    std::vector<std::pair<std::string, Value>> bind_it;
+
+    for (const auto& bind_now : bind) {
+        bind_it.push_back(std::make_pair(bind_now.first, bind_now.second->eval(env1)));
     }
-    return body.get()->eval(New_env);
+
+    Assoc env2 = env1;
+
+    for (const auto& bind_now : bind_it) {
+        modify(bind_now.first, bind_now.second, env2);
+    }
+
+    return body.get()->eval(env2);
 }  // letrec expression
 
 Value Var::eval(Assoc& e) {

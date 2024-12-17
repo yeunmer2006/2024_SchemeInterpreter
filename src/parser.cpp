@@ -113,8 +113,7 @@ Expr List ::parse(Assoc& env) {
                 case E_LETREC: {
                     checkArgCount(3, stxs.size());
                     std::vector<std::pair<std::string, Expr>> bind_in;
-                    Assoc env1 = env;
-                    Assoc env2 = env;
+                    Assoc new_env = env;
 
                     // 处理绑定条件（绑定变量并初始化为空）
                     if (auto list_it = dynamic_cast<List*>(stxs[1].get())) {
@@ -124,7 +123,7 @@ Expr List ::parse(Assoc& env) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
                                     string var_name = Ident_it->s;
-                                    env1 = extend(var_name, NullV(), env1);  // 将变量绑定到 NullV()
+                                    new_env = extend(var_name, NullV(), new_env);  // 将变量绑定到 NullV()
                                 } else {
                                     throw RuntimeError("Not Var Expr* parm");
                                 }
@@ -134,12 +133,11 @@ Expr List ::parse(Assoc& env) {
                         }
 
                         // 第二次遍历：计算值并绑定到 env2
-                        env2 = env1;
                         for (int i = 0; i < list_it->stxs.size(); i++) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
                                     // 计算绑定表达式的值
-                                    Expr tem_expr = pair_it->stxs.back().get()->parse(env1);
+                                    Expr tem_expr = pair_it->stxs.back().get()->parse(new_env);
                                     // 将绑定的值更新到 env2
                                     // env2 = extend(Ident_it->s, tem_expr->eval(env1), env2);
                                     bind_in.push_back(mp(Ident_it->s, tem_expr));
@@ -149,7 +147,7 @@ Expr List ::parse(Assoc& env) {
                     } else {
                         throw RuntimeError("Not List parm");
                     }
-                    return Expr(new Letrec(bind_in, stxs[2].get()->parse(env1)));  // 返回 Letrec
+                    return Expr(new Letrec(bind_in, stxs[2].get()->parse(new_env)));  // 返回 Letrec
                     break;
                 }
                 case E_IF: {
