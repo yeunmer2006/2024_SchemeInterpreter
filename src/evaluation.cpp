@@ -13,6 +13,7 @@ extern std ::map<std ::string, ExprType> reserved_words;
 using std ::pair;
 using std ::string;
 using std ::vector;
+
 void CheckVar(std::string name) {
     if (name.empty())
         throw RuntimeError("RE in CheckVar");
@@ -29,30 +30,6 @@ void CheckVar(std::string name) {
     return;
 }
 
-std::string MakeString(Syntax& now) {
-    if (auto it = dynamic_cast<Number*>(now.get())) {
-        return std::to_string(it->n);
-    } else if (auto it = dynamic_cast<TrueSyntax*>(now.get())) {
-        return std::string("#t");
-    } else if (auto it = dynamic_cast<FalseSyntax*>(now.get())) {
-        return std::string("#f");
-    } else if (auto it = dynamic_cast<Identifier*>(now.get())) {
-        return it->s;
-    } else if (auto it = dynamic_cast<List*>(now.get())) {
-        // 现在是在quote中 所以不求值直接返回值
-        std::string res = "(";
-        for (int i = 0; i < it->stxs.size(); i++) {
-            if (i > 0) {
-                res += " ";  // 加一个空格
-            }
-            res += MakeString(it->stxs[i]);
-        }
-        res += ")";
-        return res;
-    } else {
-        throw RuntimeError("Error in MakeString");
-    }
-}
 Value Let::eval(Assoc& env) {
     Assoc New_env = env;
     for (auto bind_it : bind) {
@@ -132,7 +109,7 @@ Value Var::eval(Assoc& e) {
                 case E_MUL: {
                     // *
                     parameters_ = {"Mult1", "Mult2"};
-                    exp = (new Mult(new Var("Mult1"), new Var("Mult1")));
+                    exp = (new Mult(new Var("Mult1"), new Var("Mult2")));
                     break;
                 }
                 case E_MINUS: {
@@ -252,41 +229,6 @@ Value Var::eval(Assoc& e) {
                     exp = (new Exit());
                     break;
                 }
-                case E_IF: {
-                    exp = new If(new Var("cond"), new Var("conseq"), new Var("alter"));
-                    parameters_ = {"cond", "conseq", "alter"};
-                    break;
-                }
-                case E_BEGIN: {
-                    // 情况特殊 默认情况下参数数量未知
-                    const vector<Expr> temp_v;
-                    exp = new Begin(temp_v);
-                    break;
-                }
-                case E_LET: {
-                    const std::vector<std::pair<std::string, Expr>> bind_;
-                    const Expr expr;
-                    exp = new Let(bind_, expr);
-                    break;
-                }
-                case E_LETREC: {
-                    const std::vector<std::pair<std::string, Expr>> bind_;
-                    const Expr expr;
-                    exp = new Letrec(bind_, expr);
-                    break;
-                }
-                case E_LAMBDA: {
-                    const std::vector<std::string> string_v;
-                    const Expr expr;
-                    exp = new Lambda(string_v, expr);
-                    break;
-                }
-                    // case E_APPLY: {
-                    //     const std::vector<Expr> expr_v;
-                    //     const Expr expr;
-                    //     exp = new Apply(expr, expr_v);
-                    // break;
-                    // }
             }
             Assoc new_env = e;
             return ClosureV(parameters_, exp, new_env);
@@ -338,7 +280,7 @@ Value Quote::eval(Assoc& e) {
     } else if (auto it = dynamic_cast<FalseSyntax*>(s.get())) {
         return BooleanV(0);
     } else if (auto it = dynamic_cast<Identifier*>(s.get())) {
-        // symbol 为单个独立的变量
+        // symbol 为单个独立的变量 防止变成函数引用
         return SymbolV(it->s);
     } else if (auto it = dynamic_cast<List*>(s.get())) {
         if (it->stxs.empty()) {

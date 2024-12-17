@@ -43,31 +43,40 @@ Expr List ::parse(Assoc& env) {
     if (stxs.empty()) {
         throw RuntimeError("RE for empty list");
     }
+    SyntaxBase* first_ = stxs[0].get();  // 先处理第一个
 
-    SyntaxBase* first_ = stxs[0].get();  // 处理第一个元素
-
-    vector<Expr> rand_;  // 参数列表
-    for (int i = 1; i < stxs.size(); i++) {
-        rand_.push_back(stxs[i].get()->parse(env));
-    }
-
-    return new Apply(first_->parse(env), rand_);  // 统一处理为函数调用
-
-    /* 下面的尝试都归类为Apply调用
     // first_ 是指向 Identifier类型的对象 比如保留字
     if (dynamic_cast<Identifier*>(first_)) {
         auto id = dynamic_cast<Identifier*>(first_);
         string id_name = id->s;
         Value find_name_in_Env = find(id_name, env);
         if (find_name_in_Env.get() != nullptr) {
-            // 说明被重定义了
+            // 说明被重定义了 两种情况 其一是绑定为 reserved_words 其二是绑定为普通函数
+            // 1.reserved_words
+            if (auto it = dynamic_cast<Closure*>(find_name_in_Env.get())) {
+                if (auto func_name = dynamic_cast<Let*>(it->e.get())) {
+                }
+                if (auto func_name = dynamic_cast<Apply*>(it->e.get())) {
+                }
+                if (auto func_name = dynamic_cast<Letrec*>(it->e.get())) {
+                }
+                if (auto func_name = dynamic_cast<Lambda*>(it->e.get())) {
+                }
+                if (auto func_name = dynamic_cast<If*>(it->e.get())) {
+                }
+                if (auto func_name = dynamic_cast<Begin*>(it->e.get())) {
+                }
+                if (auto func_name = dynamic_cast<Quote*>(it->e.get())) {
+                }
+            }
+            // 2.普通函数
             vector<Expr> rand_;  // 参数列表
             for (int i = 1; i < stxs.size(); i++) {
                 rand_.push_back(stxs[i].get()->parse(env));
             }
             return new Apply(first_->parse(env), rand_);
         }
-
+        // 没有被绑定
         if (reserved_words.count(id_name)) {
             switch (reserved_words[id_name]) {
                 case E_LET: {
@@ -81,23 +90,19 @@ Expr List ::parse(Assoc& env) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    Expr temp_expr = pair_it->stxs.back().get()->parse(env);
+                                    Expr temp_expr = pair_it->stxs.back().get()->parse(New_env);
                                     pair<string, Expr> tmp_pair = mp(Ident_it->s, temp_expr);
                                     bind_in.push_back(tmp_pair);
                                 }
                             }
                         }
                     }
-                    for (auto& [var, expr] : bind_in) {
-                        New_env = extend(var, expr.get()->eval(env), New_env);
-                    }
-                    return new Let(bind_in, stxs[2].parse(New_env));
+                    return new Let(bind_in, stxs[2].parse(env));
                     break;
                 }
                 case E_LAMBDA: {
                     checkArgCount(3, stxs.size());
                     std::vector<std::string> vars;
-                    Assoc new_env = env;
                     if (auto it = dynamic_cast<List*>(stxs[1].get())) {
                         // 读取列表中变量
                         for (int i = 0; i < it->stxs.size(); i++) {
@@ -107,7 +112,7 @@ Expr List ::parse(Assoc& env) {
                                 throw RuntimeError("Wrong with your var");
                             }
                         }
-                        return new Lambda(vars, stxs[2].get()->parse(new_env));
+                        return new Lambda(vars, stxs[2].get()->parse(env));
                     } else {
                         throw RuntimeError("Wrong with your var");
                     }
@@ -175,14 +180,11 @@ Expr List ::parse(Assoc& env) {
             }
         }
         // 检查是否是保留字
-        if (primitives.count(id_name)) {
-            vector<Expr> rand_;  // 参数列表
-            for (int i = 1; i < stxs.size(); i++) {
-                rand_.push_back(stxs[i].get()->parse(env));
-            }
-            return new Apply(first_->parse(env), rand_);
+        vector<Expr> rand_;  // 参数列表
+        for (int i = 1; i < stxs.size(); i++) {
+            rand_.push_back(stxs[i].get()->parse(env));
         }
-        throw RuntimeError("RE dont do ");
+        return new Apply(first_->parse(env), rand_);
     }
     // first_ 是指向 List 类型的对象
     if (auto first_it = dynamic_cast<List*>(first_)) {
@@ -193,7 +195,5 @@ Expr List ::parse(Assoc& env) {
         return new Apply(first_it->parse(env), rand_);  // 传入引用
     }
     throw RuntimeError("RE : nothing to do");
-
-    */
 }
 #endif
