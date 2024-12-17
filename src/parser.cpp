@@ -76,9 +76,15 @@ Expr List ::parse(Assoc& env) {
                                     New_env = extend(Ident_it->s, NullV(), New_env);
                                     pair<string, Expr> tmp_pair = mp(Ident_it->s, temp_expr);
                                     bind_in.push_back(tmp_pair);
+                                } else {
+                                    throw RuntimeError("Wrong with your var");
                                 }
+                            } else {
+                                throw RuntimeError("Wrong with your List");
                             }
                         }
+                    } else {
+                        throw RuntimeError("Wrong with your List");
                     }
                     return new Let(bind_in, stxs[2].parse(New_env));
                     break;
