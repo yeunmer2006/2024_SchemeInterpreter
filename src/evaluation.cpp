@@ -17,7 +17,6 @@ using std ::vector;
 void CheckVar(std::string name) {
     if (name.empty())
         throw RuntimeError("RE in CheckVar");
-
     char firstChar = name[0];
     if (std::isdigit(firstChar) || firstChar == '.' || firstChar == '@')
         throw RuntimeError("RE in CheckVar");
@@ -26,7 +25,6 @@ void CheckVar(std::string name) {
             throw RuntimeError("RE in CheckVar");
         }
     }
-
     return;
 }
 
