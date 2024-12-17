@@ -56,7 +56,7 @@ Expr List ::parse(Assoc& env) {
             for (int i = 1; i < stxs.size(); i++) {
                 rand_.push_back(stxs[i].get()->parse(env));
             }
-            return new Apply(first_->parse(env), rand_);
+            return Expr(new Apply(first_->parse(env), rand_));
         }
         // 没有被绑定
         if (reserved_words.count(id_name)) {
@@ -86,7 +86,7 @@ Expr List ::parse(Assoc& env) {
                     } else {
                         throw RuntimeError("Wrong with your List");
                     }
-                    return new Let(bind_in, stxs[2].parse(New_env));
+                    return Expr(new Let(bind_in, stxs[2].parse(New_env)));
                     break;
                 }
                 case E_LAMBDA: {
@@ -96,10 +96,10 @@ Expr List ::parse(Assoc& env) {
                     if (auto it = dynamic_cast<List*>(stxs[1].get())) {
                         // 读取列表中变量
                         for (int i = 0; i < it->stxs.size(); i++) {
-                            // Expr tmp_ = it->stxs[i].get()->parse(env);
-                            if (auto tmp_var = dynamic_cast<Identifier*>(it->stxs[i].get())) {
-                                vars.push_back(tmp_var->s);
-                                New_env = extend(tmp_var->s, NullV(), New_env);
+                            Expr tmp_ = it->stxs[i].get()->parse(env);
+                            if (auto tmp_var = dynamic_cast<Var*>(tmp_.get())) {
+                                vars.push_back(tmp_var->x);
+                                New_env = extend(tmp_var->x, NullV(), New_env);
                             } else {
                                 throw RuntimeError("Wrong with your var");
                             }
@@ -123,7 +123,8 @@ Expr List ::parse(Assoc& env) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    env1 = extend(Ident_it->s, NullV(), env1);  // 将变量绑定到 NullV()
+                                    string var_name = Ident_it->s;
+                                    env1 = extend(var_name, NullV(), env1);  // 将变量绑定到 NullV()
                                 } else {
                                     throw RuntimeError("Not Var Expr* parm");
                                 }
@@ -140,7 +141,7 @@ Expr List ::parse(Assoc& env) {
                                     // 计算绑定表达式的值
                                     Expr tem_expr = pair_it->stxs.back().get()->parse(env1);
                                     // 将绑定的值更新到 env2
-                                    env2 = extend(Ident_it->s, tem_expr->eval(env2), env2);
+                                    // env2 = extend(Ident_it->s, tem_expr->eval(env1), env2);
                                     bind_in.push_back(mp(Ident_it->s, tem_expr));
                                 }
                             }
@@ -148,7 +149,7 @@ Expr List ::parse(Assoc& env) {
                     } else {
                         throw RuntimeError("Not List parm");
                     }
-                    return new Letrec(bind_in, stxs[2].get()->parse(env2));  // 返回 Letrec
+                    return Expr(new Letrec(bind_in, stxs[2].get()->parse(env1)));  // 返回 Letrec
                     break;
                 }
                 case E_IF: {
@@ -171,7 +172,7 @@ Expr List ::parse(Assoc& env) {
                 }
             }
         }
-        // 检查是否是保留字
+
         vector<Expr> rand_;  // 参数列表
         for (int i = 1; i < stxs.size(); i++) {
             rand_.push_back(stxs[i].get()->parse(env));
@@ -179,13 +180,17 @@ Expr List ::parse(Assoc& env) {
         return new Apply(first_->parse(env), rand_);
     }
     // first_ 是指向 List 类型的对象
-    if (auto first_it = dynamic_cast<List*>(first_)) {
+    else if (auto first_it = dynamic_cast<List*>(first_)) {
         vector<Expr> rand_;  // 参数列表
         for (int i = 1; i < stxs.size(); i++) {
             rand_.push_back(stxs[i].get()->parse(env));
         }
         return new Apply(first_it->parse(env), rand_);  // 传入引用
     }
-    throw RuntimeError("RE : nothing to do");
+    vector<Expr> rand_;  // 参数列表
+    for (int i = 1; i < stxs.size(); i++) {
+        rand_.push_back(stxs[i].get()->parse(env));
+    }
+    return new Apply(stxs[0]->parse(env), rand_);  // 传入引用
 }
 #endif

@@ -1,12 +1,12 @@
 #include <cstring>
 #include <map>
+#include <unordered_set>
 #include <vector>
 #include "Def.hpp"
 #include "RE.hpp"
 #include "expr.hpp"
 #include "syntax.hpp"
 #include "value.hpp"
-
 extern std ::map<std ::string, ExprType> primitives;
 extern std ::map<std ::string, ExprType> reserved_words;
 #define mp make_pair
@@ -30,7 +30,13 @@ void CheckVar(std::string name) {
 
 Value Let::eval(Assoc& env) {
     Assoc New_env = env;
-    for (auto bind_it : bind) {
+    std::unordered_set<string> var_names;
+    for (const auto& bind_it : bind) {
+        if (!var_names.insert(bind_it.first).second) {
+            throw RuntimeError("Duplicate variable in let binding: " + bind_it.first);
+        }
+    }
+    for (const auto& bind_it : bind) {
         // 不允许相互引用
         CheckVar(bind_it.first);
         Value value = bind_it.second->eval(env);
@@ -73,7 +79,12 @@ Value Apply::eval(Assoc& e) {
 
 Value Letrec::eval(Assoc& env) {
     Assoc New_env = env;
-
+    std::unordered_set<string> var_names;
+    for (const auto& bind_it : bind) {
+        if (!var_names.insert(bind_it.first).second) {
+            throw RuntimeError("Duplicate variable in let binding: " + bind_it.first);
+        }
+    }
     // 1. 先将所有变量绑定到 nullptr
     for (const auto& bind_it : bind) {
         New_env = extend(bind_it.first, NullV(), New_env);
