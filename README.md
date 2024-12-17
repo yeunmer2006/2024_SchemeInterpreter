@@ -32,6 +32,12 @@
 ### 10th version
 修改了Letrec的语法
 
+### 11th version
+修改了lambda的逻辑，绑定了环境；修改了let 的逻辑，在let执行过程中绑定了环境
+
+### 12th version
+完成所有样例
+
 # 下面是本次作业内容
 
 ## Project 4: Scheme Interpreter

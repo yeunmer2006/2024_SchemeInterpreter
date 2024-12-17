@@ -52,22 +52,6 @@ Expr List ::parse(Assoc& env) {
         Value find_name_in_Env = find(id_name, env);
         if (find_name_in_Env.get() != nullptr) {
             // 说明被重定义了 两种情况 其一是绑定为 reserved_words 其二是绑定为普通函数
-            // 1.reserved_words
-            // if (auto it = dynamic_cast<Closure*>(find_name_in_Env.get())) {
-            //     if (auto func_name = dynamic_cast<Let*>(it->e.get())) {
-            //     }
-            //     if (auto func_name = dynamic_cast<Letrec*>(it->e.get())) {
-            //     }
-            //     if (auto func_name = dynamic_cast<Lambda*>(it->e.get())) {
-            //     }
-            //     if (auto func_name = dynamic_cast<If*>(it->e.get())) {
-            //     }
-            //     if (auto func_name = dynamic_cast<Begin*>(it->e.get())) {
-            //     }
-            //     if (auto func_name = dynamic_cast<Quote*>(it->e.get())) {
-            //     }
-            // }
-            // 2.普通函数
             vector<Expr> rand_;  // 参数列表
             for (int i = 1; i < stxs.size(); i++) {
                 rand_.push_back(stxs[i].get()->parse(env));
@@ -88,7 +72,7 @@ Expr List ::parse(Assoc& env) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    Expr temp_expr = pair_it->stxs.back().get()->parse(New_env);
+                                    Expr temp_expr = pair_it->stxs.back().get()->parse(env);
                                     New_env = extend(Ident_it->s, NullV(), New_env);
                                     pair<string, Expr> tmp_pair = mp(Ident_it->s, temp_expr);
                                     bind_in.push_back(tmp_pair);
@@ -106,10 +90,10 @@ Expr List ::parse(Assoc& env) {
                     if (auto it = dynamic_cast<List*>(stxs[1].get())) {
                         // 读取列表中变量
                         for (int i = 0; i < it->stxs.size(); i++) {
-                            Expr tmp_ = it->stxs[i].get()->parse(env);
-                            if (auto tmp_var = dynamic_cast<Var*>(tmp_.get())) {
-                                vars.push_back(tmp_var->x);
-                                New_env = extend(tmp_var->x, NullV(), New_env);
+                            // Expr tmp_ = it->stxs[i].get()->parse(env);
+                            if (auto tmp_var = dynamic_cast<Identifier*>(it->stxs[i].get())) {
+                                vars.push_back(tmp_var->s);
+                                New_env = extend(tmp_var->s, NullV(), New_env);
                             } else {
                                 throw RuntimeError("Wrong with your var");
                             }
