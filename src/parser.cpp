@@ -43,7 +43,8 @@ Expr List ::parse(Assoc& env) {
     if (stxs.empty()) {
         throw RuntimeError("RE for empty list");
     }
-    SyntaxBase* first_ = stxs[0].get();  // 先处理第一个
+
+    SyntaxBase* first_ = stxs[0].get();  // 处理第一个元素
 
     // first_ 是指向 Identifier类型的对象 比如保留字
     if (dynamic_cast<Identifier*>(first_)) {
@@ -72,19 +73,23 @@ Expr List ::parse(Assoc& env) {
                             if (auto pair_it = dynamic_cast<List*>(list_it->stxs[i].get())) {
                                 checkArgCount(2, pair_it->stxs.size());
                                 if (auto Ident_it = dynamic_cast<Identifier*>(pair_it->stxs.front().get())) {
-                                    Expr temp_expr = pair_it->stxs.back().get()->parse(New_env);
+                                    Expr temp_expr = pair_it->stxs.back().get()->parse(env);
                                     pair<string, Expr> tmp_pair = mp(Ident_it->s, temp_expr);
                                     bind_in.push_back(tmp_pair);
                                 }
                             }
                         }
                     }
-                    return new Let(bind_in, stxs[2].parse(env));
+                    for (auto& [var, expr] : bind_in) {
+                        // New_env = extend(var, expr.get()->eval(env), New_env);
+                    }
+                    return new Let(bind_in, stxs[2].parse(New_env));
                     break;
                 }
                 case E_LAMBDA: {
                     checkArgCount(3, stxs.size());
                     std::vector<std::string> vars;
+                    Assoc new_env = env;
                     if (auto it = dynamic_cast<List*>(stxs[1].get())) {
                         // 读取列表中变量
                         for (int i = 0; i < it->stxs.size(); i++) {
@@ -94,7 +99,7 @@ Expr List ::parse(Assoc& env) {
                                 throw RuntimeError("Wrong with your var");
                             }
                         }
-                        return new Lambda(vars, stxs[2].get()->parse(env));
+                        return new Lambda(vars, stxs[2].get()->parse(new_env));
                     } else {
                         throw RuntimeError("Wrong with your var");
                     }
@@ -130,7 +135,7 @@ Expr List ::parse(Assoc& env) {
                                     // 计算绑定表达式的值
                                     Expr tem_expr = pair_it->stxs.back().get()->parse(env1);
                                     // 将绑定的值更新到 env2
-                                    env2 = extend(Ident_it->s, tem_expr->eval(env2), env2);
+                                    env2 = extend(Ident_it->s, tem_expr->eval(env1), env2);
                                     bind_in.push_back(mp(Ident_it->s, tem_expr));
                                 }
                             }
