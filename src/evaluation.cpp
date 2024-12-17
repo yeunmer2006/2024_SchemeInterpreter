@@ -9,7 +9,10 @@
 
 extern std ::map<std ::string, ExprType> primitives;
 extern std ::map<std ::string, ExprType> reserved_words;
-
+#define mp make_pair
+using std ::pair;
+using std ::string;
+using std ::vector;
 void CheckVar(std::string name) {
     if (name.empty())
         throw RuntimeError("RE in CheckVar");
@@ -54,14 +57,16 @@ Value Let::eval(Assoc& env) {
     Assoc New_env = env;
     for (auto bind_it : bind) {
         // 不允许相互引用
-        New_env = extend(bind_it.first, bind_it.second.get()->eval(env), New_env);
+        CheckVar(bind_it.first);
+        Value value = bind_it.second->eval(env);
+        New_env = extend(bind_it.first, value, New_env);
     }
     return body.get()->eval(New_env);
 }  // let expression
 
 Value Lambda::eval(Assoc& env) {
-    Assoc capturedEnv = env;  // 拷贝当前环境 深拷贝
-    return ClosureV(x, e, capturedEnv);
+    Assoc newEnv = env;  // 拷贝当前环境 深拷贝
+    return ClosureV(x, e, newEnv);
 }  // lambda expression
 
 Value Apply::eval(Assoc& e) {
@@ -111,108 +116,131 @@ Value Var::eval(Assoc& e) {
     CheckVar(x);
     Value it = find(x, e);
     if (it.get() == nullptr) {
-        if (primitives.count(x)) {
+        if (primitives.count(x) || reserved_words.count(x)) {
+            // primitive 关键字
             std::vector<std::string> parameters_;  // 形参
             const auto& it = this;
             Expr exp;
             int type_name = -1;
             if (primitives.count(x)) {
                 type_name = primitives[x];
+            } else {
+                type_name = reserved_words[x];
             }
             // 转为函数
             switch (type_name) {
                 case E_MUL: {
                     // *
-                    exp = (new Mult(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Mult1", "Mult2"};
+                    exp = (new Mult(new Var("Mult1"), new Var("Mult1")));
                     break;
                 }
                 case E_MINUS: {
                     // -
-                    exp = (new Minus(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Minus1", "Minus2"};
+                    exp = (new Minus(new Var("Minus1"), new Var("Minus2")));
                     break;
                 }
                 case E_PLUS: {
                     // +
-                    exp = (new Plus(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Plus1", "Plus2"};
+                    exp = (new Plus(new Var("Plus1"), new Var("Plus2")));
                     break;
                 }
                 case E_LT: {
                     // <
-                    exp = (new Less(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Lt1", "Lt2"};
+                    exp = (new Less(new Var("Lt1"), new Var("Lt2")));
                     break;
                 }
                 case E_LE: {
                     // <=
-                    exp = (new LessEq(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Le1", "Le2"};
+                    exp = (new LessEq(new Var("Le1"), new Var("Le2")));
                     break;
                 }
                 case E_EQ: {
                     // ==
-                    exp = (new Equal(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Eq1", "Eq2"};
+                    exp = (new Equal(new Var("Eq1"), new Var("Eq2")));
                     break;
                 }
                 case E_GE: {
                     // >=
-                    exp = (new GreaterEq(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Ge1", "Ge2"};
+                    exp = (new GreaterEq(new Var("Ge1"), new Var("Ge2")));
                     break;
                 }
                 case E_GT: {
                     // >
-                    exp = (new Greater(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Gt1", "Gt2"};
+                    exp = (new Greater(new Var("Gt1"), new Var("Gt2")));
                     break;
                 }
                 case E_EQQ: {
                     // "eq?"
-                    exp = (new IsEq(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"EqQ1", "EqQ2"};
+                    exp = (new IsEq(new Var("EqQ1"), new Var("EqQ2")));
                     break;
                 }
                 case E_BOOLQ: {
-                    // "boolen?"
-                    exp = (new IsBoolean(new Var("parm")));
+                    // "boolean?"
+                    parameters_ = {"BoolQ"};
+                    exp = (new IsBoolean(new Var("BoolQ")));
                     break;
                 }
                 case E_INTQ: {
                     // "fixnum?"
-                    exp = (new IsFixnum(new Var("parm")));
+                    parameters_ = {"IntQ"};
+                    exp = (new IsFixnum(new Var("IntQ")));
                     break;
                 }
                 case E_NULLQ: {
                     // "null?"
-                    exp = (new IsNull(new Var("parm")));
+                    parameters_ = {"NullQ"};
+                    exp = (new IsNull(new Var("NullQ")));
                     break;
                 }
                 case E_PAIRQ: {
                     // "pair?"
-                    exp = (new IsPair(new Var("parm")));
+                    parameters_ = {"PairQ"};
+                    exp = (new IsPair(new Var("PairQ")));
                     break;
                 }
                 case E_PROCQ: {
                     // "procedure?"
-                    exp = (new IsProcedure(new Var("parm")));
+                    parameters_ = {"ProcQ"};
+                    exp = (new IsProcedure(new Var("ProcQ")));
                     break;
                 }
                 case E_SYMBOLQ: {
                     // "symbol?"
-                    exp = (new IsSymbol(new Var("parm")));
+                    parameters_ = {"SymbolQ"};
+                    exp = (new IsSymbol(new Var("SymbolQ")));
                     break;
                 }
                 case E_CONS: {
                     // cons
-                    exp = (new Cons(new Var("parm1"), new Var("parm2")));
+                    parameters_ = {"Cons1", "Cons2"};
+                    exp = (new Cons(new Var("Cons1"), new Var("Cons2")));
                     break;
                 }
                 case E_NOT: {
                     // not
-                    exp = (new Not(new Var("parm")));
+                    parameters_ = {"Not"};
+                    exp = (new Not(new Var("Not")));
                     break;
                 }
                 case E_CAR: {
-                    // cdr
-                    exp = (new Car(new Var("parm")));
+                    // car
+                    parameters_ = {"Car"};
+                    exp = (new Car(new Var("Car")));
                     break;
                 }
                 case E_CDR: {
-                    exp = (new Cdr(new Var("parm")));
+                    // cdr
+                    parameters_ = {"Cdr"};
+                    exp = (new Cdr(new Var("Cdr")));
                     break;
                 }
                 case E_VOID: {
@@ -224,14 +252,44 @@ Value Var::eval(Assoc& e) {
                     exp = (new Exit());
                     break;
                 }
+                case E_IF: {
+                    exp = new If(new Var("cond"), new Var("conseq"), new Var("alter"));
+                    parameters_ = {"cond", "conseq", "alter"};
+                    break;
+                }
+                case E_BEGIN: {
+                    // 情况特殊 默认情况下参数数量未知
+                    const vector<Expr> temp_v;
+                    exp = new Begin(temp_v);
+                    break;
+                }
+                case E_LET: {
+                    const std::vector<std::pair<std::string, Expr>> bind_;
+                    const Expr expr;
+                    exp = new Let(bind_, expr);
+                    break;
+                }
+                case E_LETREC: {
+                    const std::vector<std::pair<std::string, Expr>> bind_;
+                    const Expr expr;
+                    exp = new Letrec(bind_, expr);
+                    break;
+                }
+                case E_LAMBDA: {
+                    const std::vector<std::string> string_v;
+                    const Expr expr;
+                    exp = new Lambda(string_v, expr);
+                    break;
+                }
+                    // case E_APPLY: {
+                    //     const std::vector<Expr> expr_v;
+                    //     const Expr expr;
+                    //     exp = new Apply(expr, expr_v);
+                    // break;
+                    // }
             }
-            if (dynamic_cast<Binary*>(exp.get())) {
-                parameters_.push_back("parm1");
-                parameters_.push_back("parm2");
-            } else if (dynamic_cast<Unary*>(exp.get())) {
-                parameters_.push_back("parm");
-            }
-            return ClosureV(parameters_, exp, e);
+            Assoc new_env = e;
+            return ClosureV(parameters_, exp, new_env);
         } else {
             throw RuntimeError("Error in Var->eval");
         }

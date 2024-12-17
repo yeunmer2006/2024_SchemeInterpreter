@@ -46,6 +46,14 @@ Expr List ::parse(Assoc& env) {
 
     SyntaxBase* first_ = stxs[0].get();  // 处理第一个元素
 
+    vector<Expr> rand_;  // 参数列表
+    for (int i = 1; i < stxs.size(); i++) {
+        rand_.push_back(stxs[i].get()->parse(env));
+    }
+
+    return new Apply(first_->parse(env), rand_);  // 统一处理为函数调用
+
+    /* 下面的尝试都归类为Apply调用
     // first_ 是指向 Identifier类型的对象 比如保留字
     if (dynamic_cast<Identifier*>(first_)) {
         auto id = dynamic_cast<Identifier*>(first_);
@@ -81,7 +89,7 @@ Expr List ::parse(Assoc& env) {
                         }
                     }
                     for (auto& [var, expr] : bind_in) {
-                        // New_env = extend(var, expr.get()->eval(env), New_env);
+                        New_env = extend(var, expr.get()->eval(env), New_env);
                     }
                     return new Let(bind_in, stxs[2].parse(New_env));
                     break;
@@ -135,7 +143,7 @@ Expr List ::parse(Assoc& env) {
                                     // 计算绑定表达式的值
                                     Expr tem_expr = pair_it->stxs.back().get()->parse(env1);
                                     // 将绑定的值更新到 env2
-                                    env2 = extend(Ident_it->s, tem_expr->eval(env1), env2);
+                                    env2 = extend(Ident_it->s, tem_expr->eval(env2), env2);
                                     bind_in.push_back(mp(Ident_it->s, tem_expr));
                                 }
                             }
@@ -185,5 +193,7 @@ Expr List ::parse(Assoc& env) {
         return new Apply(first_it->parse(env), rand_);  // 传入引用
     }
     throw RuntimeError("RE : nothing to do");
+
+    */
 }
 #endif
