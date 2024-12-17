@@ -93,7 +93,7 @@ Value Var::eval(Assoc& e) {
     CheckVar(x);
     Value it = find(x, e);
     if (it.get() == nullptr) {
-        if (primitives.count(x) || reserved_words.count(x)) {
+        if (primitives.count(x)) {
             // primitive 关键字
             std::vector<std::string> parameters_;  // 形参
             const auto& it = this;

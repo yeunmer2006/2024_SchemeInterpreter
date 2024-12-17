@@ -38,6 +38,9 @@
 ### 12th version
 完成所有样例
 
+### 13th version
+调整了RE抛出规则
+
 # 下面是本次作业内容
 
 ## Project 4: Scheme Interpreter
