@@ -114,8 +114,6 @@ Value Var::eval(Assoc& e) {
             int type_name = -1;
             if (primitives.count(x)) {
                 type_name = primitives[x];
-            } else {
-                type_name = reserved_words[x];
             }
             // 转为函数
             switch (type_name) {
